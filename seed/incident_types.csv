@@ -1,0 +1,9 @@
+# synthetic
+name,requires,destination_capability
+structure_fire,fire_suppression:2;ladder:1,
+cardiac_arrest,als:1;transport:1,emergency
+stroke,als:1;transport:1,stroke_thrombectomy
+major_trauma,als:1;transport:1,trauma
+pediatric_trauma,als:1;transport:1,pediatric_trauma
+burn,als:1;transport:1,burn
+hazmat_spill,hazmat:1;fire_suppression:1,

@@ -1,0 +1,132 @@
+{
+ "scenarios": {
+  "S1": {
+   "type": "stroke",
+   "units": [
+    [
+     "E7",
+     "als",
+     132.3
+    ],
+    [
+     "M7",
+     "transport",
+     132.3
+    ]
+   ],
+   "chosen": "Regional Medical Center of San Jose",
+   "nearest": "O'Connor Hospital",
+   "differs": true,
+   "skipped": "O'Connor Hospital is nearest (49 s) but lacks stroke_thrombectomy",
+   "total_ms": 42.4
+  },
+  "S2": {
+   "type": "burn",
+   "units": [
+    [
+     "E8",
+     "als",
+     217.5
+    ],
+    [
+     "M5",
+     "transport",
+     314.3
+    ]
+   ],
+   "chosen": "Santa Clara Valley Medical Center",
+   "nearest": "Regional Medical Center of San Jose",
+   "differs": true,
+   "skipped": "Regional Medical Center of San Jose is nearest (84 s) but lacks burn",
+   "total_ms": 30.8
+  },
+  "S3": {
+   "type": "cardiac_arrest",
+   "units": [
+    [
+     "E8",
+     "als",
+     134.3
+    ],
+    [
+     "M3",
+     "transport",
+     149.7
+    ]
+   ],
+   "chosen": "O'Connor Hospital",
+   "nearest": "O'Connor Hospital",
+   "differs": false,
+   "skipped": null,
+   "total_ms": 28.8
+  },
+  "S4": {
+   "type": "structure_fire",
+   "units": [
+    [
+     "E8",
+     "fire_suppression",
+     51.5
+    ],
+    [
+     "T8",
+     "ladder",
+     51.5
+    ],
+    [
+     "T1",
+     "fire_suppression",
+     122.0
+    ]
+   ],
+   "chosen": null,
+   "nearest": null,
+   "differs": null,
+   "skipped": null,
+   "total_ms": 18.3
+  },
+  "S5": {
+   "type": "pediatric_trauma",
+   "units": [
+    [
+     "E3",
+     "als",
+     184.5
+    ],
+    [
+     "M3",
+     "transport",
+     184.5
+    ]
+   ],
+   "chosen": "Santa Clara Valley Medical Center",
+   "nearest": "Regional Medical Center of San Jose",
+   "differs": true,
+   "skipped": "Regional Medical Center of San Jose is nearest (508 s) but lacks pediatric_trauma",
+   "total_ms": 21.4
+  },
+  "S6": {
+   "type": "hazmat_spill",
+   "units": [
+    [
+     "E30",
+     "fire_suppression",
+     135.9
+    ],
+    [
+     "HM26",
+     "hazmat",
+     477.1
+    ]
+   ],
+   "chosen": null,
+   "nearest": null,
+   "differs": null,
+   "skipped": null,
+   "total_ms": 14.9
+  }
+ },
+ "p50_ms": 18.25269999972079,
+ "p95_ms": 22.282199999608565,
+ "n": 30
+}

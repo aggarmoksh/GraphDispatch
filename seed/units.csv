@@ -1,0 +1,24 @@
+# synthetic
+unit_id,type,station_id,status,capabilities
+E1,engine,1,busy,fire_suppression;als
+E3,engine,3,available,fire_suppression;als
+E4,engine,4,available,fire_suppression;als
+E5,engine,5,available,fire_suppression;als
+E6,engine,6,available,fire_suppression;als
+E7,engine,7,available,fire_suppression;als
+E8,engine,8,available,fire_suppression;als
+E10,engine,10,available,fire_suppression;als
+E26,engine,26,available,fire_suppression;als
+E30,engine,30,available,fire_suppression;als
+T1,truck,1,available,ladder;fire_suppression
+T4,truck,4,available,ladder;fire_suppression
+T5,truck,5,available,ladder;fire_suppression
+T8,truck,8,available,ladder;fire_suppression
+T30,truck,30,available,ladder;fire_suppression
+M1,medic,1,busy,als;transport
+M3,medic,3,available,als;transport
+M5,medic,5,available,als;transport
+M7,medic,7,available,als;transport
+M10,medic,10,available,als;transport
+M26,medic,26,available,als;transport
+HM26,hazmat,26,available,hazmat
