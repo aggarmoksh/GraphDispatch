@@ -18,6 +18,8 @@ Graph Hacks (WeMakeDevs x FalkorDB), Tracks 01 and 02.
 - Use py -3.12 for the venv; the default python on this machine is 3.10.
 - Call algo.SPpaths with a single config map and a pathCount; algo.AStar takes one argument (a config map), not (source, target, config).
 - GRAPH.MEMORY USAGE reports whole MB (0 for small graphs); use INFO memory used_memory deltas for small graphs.
+- algo.AStar takes one config map and requires latitudeProperty and longitudeProperty (not latitudeProp). With weightProp travel_s it returned suboptimal paths (1/20 match); do not use it for routing without re-verification. dbms.procedures() returns only name and mode, no signatures.
+- Reading OSM features and drive graphs for the large box takes minutes; run in background.
 - Engine default query TIMEOUT is 1000 ms (FalkorDB 4.22.1 module).
 - The downtown San Jose bbox yields 874 intersections, below the 1,000 floor; revisit the bbox before relying on it.
 

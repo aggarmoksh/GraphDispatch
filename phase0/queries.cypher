@@ -28,5 +28,5 @@ MATCH ()-[e:ROAD]->() RETURN count(e);
 -- [road_sp] Cheapest path between two intersections via SPpaths.
 MATCH (a:Intersection {osm_id: $src}), (b:Intersection {osm_id: $dst}) CALL algo.SPpaths({sourceNode: a, targetNode: b, relTypes: ['ROAD'], relDirection: 'outgoing', weightProp: 'travel_s', pathCount: 1}) YIELD path, pathWeight RETURN pathWeight, length(path) AS hops;
 
--- [road_astar] Same pair via algo.AStar (lat/lon heuristic).
-MATCH (a:Intersection {osm_id: $src}), (b:Intersection {osm_id: $dst}) CALL algo.AStar(a, b, {relTypes: ['ROAD'], weightProp: 'travel_s', latitudeProp: 'lat', longitudeProp: 'lon'}) YIELD path, pathWeight RETURN pathWeight, length(path) AS hops;
+-- [road_astar] Same pair via algo.AStar (single config map; latitudeProperty/longitudeProperty required, verified on 4.22.1).
+MATCH (a:Intersection {osm_id: $src}), (b:Intersection {osm_id: $dst}) CALL algo.AStar({sourceNode: a, targetNode: b, relTypes: ['ROAD'], weightProp: 'travel_s', latitudeProperty: 'lat', longitudeProperty: 'lon'}) YIELD path, pathWeight RETURN pathWeight, length(path) AS hops;

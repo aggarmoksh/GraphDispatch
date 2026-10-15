@@ -1,0 +1,4 @@
+box,west,south,east,north,hospitals,hospitals_emergency_yes,fire_stations,intersections,edges
+B1,-121.91,37.32,-121.87,37.35,0,0,4,874,2145
+B2,-121.945,37.3,-121.84,37.37,5,3,13,4316,10641
+B3,-121.96,37.24,-121.78,37.4,10,5,29,17263,41699
