@@ -219,3 +219,7 @@ MATCH (h:Hospital)-[:LOCATED_AT]->(i:Intersection) OPTIONAL MATCH (h)-[o:OFFERS]
 
 -- [active_hazards_map] Active hazards with the address position and crew note (for map markers).
 MATCH (h:Hazard)-[:AT]->(a:Address) WHERE h.valid_from <= $now AND $now <= h.valid_to AND a.lat IS NOT NULL OPTIONAL MATCH (h)-[:OF_KIND]->(k:HazardKind) RETURN h.hazard_id AS hazard_id, h.kind AS kind, h.note AS note, a.label AS address, a.lat AS lat, a.lon AS lon, k.crew_note AS crew_note ORDER BY h.created_ns;
+
+-- [expire_incidents] Demo self-healing: expire open or dispatched incidents created before a cutoff and free the units assigned to them (decisions and hazards are kept).
+MATCH (inc:Incident) WHERE inc.status IN ['open', 'dispatched'] AND inc.created_at < $cutoff OPTIONAL MATCH (u:Unit)-[r:ASSIGNED_TO]->(inc) WITH inc, collect(u) AS units, collect(r) AS rels FOREACH (x IN units | SET x.status = 'available') FOREACH (e IN rels | DELETE e) SET inc.status = 'expired' RETURN count(inc) AS expired, sum(size(units)) AS units_freed;
+

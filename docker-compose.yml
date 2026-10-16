@@ -1,0 +1,38 @@
+# GraphDispatch: app + FalkorDB on one small host (t3.micro, 1 GB RAM). Plain HTTP on port 80.
+# FalkorDB is pinned to the exact image used in development (see seed/DATA.md) and publishes NO ports.
+name: graphdispatch
+
+services:
+  falkordb:
+    image: falkordb/falkordb@sha256:b0bdcac2cbaff989e77cb0610439b7a9289e86de033ccbbd4368b66fb680ae7a
+    restart: unless-stopped
+    environment:
+      BROWSER: "0"                      # no bundled browser UI in production
+    volumes:
+      - falkordb_data:/var/lib/falkordb/data   # FALKORDB_DATA_PATH of the image (RDB snapshots live here)
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    mem_limit: 300m
+    stop_grace_period: 30s              # lets Redis write its snapshot on shutdown
+
+  app:
+    build: .
+    image: graphdispatch-app:latest
+    env_file: .env.server               # gitignored; copy from .env.server.example. No AWS keys: use the instance role.
+    ports:
+      - "80:8000"
+    depends_on:
+      falkordb:
+        condition: service_healthy
+    restart: unless-stopped
+    mem_limit: 450m
+    volumes:
+      - gd_runs:/app/runs               # keeps the daily LLM counter across restarts
+
+volumes:
+  falkordb_data:
+  gd_runs:

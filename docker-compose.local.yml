@@ -1,0 +1,6 @@
+# Local testing override: serve the app on 8080 instead of 80.
+#   docker compose -p gdlocal -f docker-compose.yml -f docker-compose.local.yml up -d --build
+services:
+  app:
+    ports: !override
+      - "8080:8000"

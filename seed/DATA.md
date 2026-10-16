@@ -28,3 +28,7 @@ Units, incident types, callers, addresses, hazards and incidents are all synthet
 ## Display labels (Phase 5B)
 - `capability_labels.csv` and `incident_type_labels.csv` map ids to plain-language names for the page. They are display text only and change no decision.
 
+## Deployment images (Phase 6A)
+- FalkorDB for docker compose is pinned to the exact image the development container runs: `falkordb/falkordb@sha256:b0bdcac2cbaff989e77cb0610439b7a9289e86de033ccbbd4368b66fb680ae7a` (FalkorDB graph module 4.22.1, Redis 8.10.2). Its data directory is `/var/lib/falkordb/data`.
+- The app image is python:3.12-slim with the pinned packages in requirements-runtime.txt.
+

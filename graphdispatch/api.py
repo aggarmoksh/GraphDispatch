@@ -4,14 +4,17 @@ Run: python -m uvicorn graphdispatch.api:app --port 8000
 Only /api/call uses the LLM (Bedrock); it is capped server-side (daily and per client). Every other path is graph-only.
 Every decision response carries the real Cypher of each query the request ran (the page's Why drawer shows it).
 """
+import asyncio
 import csv
 import json
+import logging
 import os
 import re
 import threading
 import time
 import uuid
 from collections import defaultdict, deque
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -25,8 +28,8 @@ os.environ.setdefault("LLM_CALL_CAP", "100000")  # the process cap in llm.py; th
 from . import db  # noqa: E402
 from .intake import IntakeRejected, take_call  # noqa: E402
 from .llm import CallCapExceeded  # noqa: E402
-from .ops import (DispatchRefused, UnknownHazardKind, add_hazard, address_id, clear, dispatch, explain_why,  # noqa: E402
-                  group_hazards, run_call, why)
+from .ops import (DispatchRefused, UnknownHazardKind, add_hazard, address_id, clear, dispatch, expire_stale,  # noqa: E402
+                  explain_why, group_hazards, run_call, why)
 from .recommend import OutOfArea, fmt_reason  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -35,7 +38,31 @@ DAILY_FILE = ROOT / "runs" / "llm_daily.json"
 IP_LIMIT, IP_WINDOW_S = 6, 600
 HAZARD_WINDOW_S = 30 * 86400
 
-app = FastAPI(title="GraphDispatch", docs_url="/api/docs", openapi_url="/api/openapi.json")
+log = logging.getLogger("graphdispatch")
+
+
+async def _expiry_loop():
+    """Every DEMO_EXPIRY_INTERVAL_S (default 300) free units held by stale demo incidents. Runs once at startup too."""
+    while True:
+        try:
+            expired, freed = await asyncio.to_thread(expire_stale)
+            if expired:
+                log.info("expired %s stale incidents, freed %s units", expired, freed)
+        except Exception as e:  # the demo must keep serving even if one sweep fails
+            log.warning("expiry sweep failed: %s", e)
+        await asyncio.sleep(float(os.getenv("DEMO_EXPIRY_INTERVAL_S", "300")))
+
+
+@asynccontextmanager
+async def lifespan(_app):
+    task = asyncio.create_task(_expiry_loop())
+    try:
+        yield
+    finally:
+        task.cancel()
+
+
+app = FastAPI(title="GraphDispatch", docs_url="/api/docs", openapi_url="/api/openapi.json", lifespan=lifespan)
 _lock = threading.Lock()
 _ip_calls = defaultdict(deque)
 
@@ -63,11 +90,33 @@ class HazardIn(BaseModel):
 
 
 # ---------------------------------------------------------------- caps (server-side, cost control)
-def _client_ip(request: Request):
-    if os.getenv("TRUST_PROXY") == "1":  # only behind a proxy you control
+def _strip_port(addr):
+    """'1.2.3.4:5678' -> '1.2.3.4'; '[2001:db8::1]:5678' -> '2001:db8::1'; a bare IPv6 address is returned unchanged."""
+    addr = addr.strip()
+    if addr.startswith("["):
+        return addr[1:addr.index("]")] if "]" in addr else addr
+    if addr.count(":") == 1:
+        return addr.split(":")[0]
+    return addr
+
+
+def client_ip(request: Request):
+    """The address the per-IP limit counts.
+
+    TRUST_PROXY=0 (default): the socket peer; forwarding headers are ignored, so a visitor cannot choose their key.
+    TRUST_PROXY=1 (only behind CloudFront or a load balancer that sets these headers): CloudFront-Viewer-Address if
+    present (port stripped), else the RIGHTMOST X-Forwarded-For entry, the one our own proxy appended. The leftmost
+    entries are client-supplied and are never used.
+    """
+    if os.getenv("TRUST_PROXY") == "1":
+        viewer = request.headers.get("cloudfront-viewer-address")
+        if viewer:
+            return _strip_port(viewer)
         fwd = request.headers.get("x-forwarded-for")
         if fwd:
-            return fwd.split(",")[0].strip()
+            parts = [x.strip() for x in fwd.split(",") if x.strip()]
+            if parts:
+                return parts[-1]
     return request.client.host if request.client else "unknown"
 
 
@@ -85,7 +134,7 @@ def check_and_count_llm_call(request: Request):
             data = {"date": today, "count": 0}
         if data["count"] >= cap:
             raise HTTPException(429, msg)
-        ip, now = _client_ip(request), time.time()
+        ip, now = client_ip(request), time.time()
         q = _ip_calls[ip]
         while q and now - q[0] > IP_WINDOW_S:
             q.popleft()

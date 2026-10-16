@@ -27,4 +27,8 @@
 - Store the structured stroke rule (extra seconds, limits, total) on the Decision instead of parsing the rule sentence.
 - Let the page switch label language later; labels are English only.
 - On a phone the incident ring and the skipped hospital label can crowd each other; consider a label offset or tap-to-reveal.
+- HTTPS: put CloudFront (or a load balancer with an ACM certificate) in front, then set TRUST_PROXY=1 so the per-IP limit uses the viewer address the proxy sets.
+- Persist the per-IP limiter (it is in memory in one worker and resets on restart); the daily cap file already survives restarts.
+- A real healthcheck dashboard and a CloudWatch cost alarm on Bedrock.
+- Run the app as a systemd-managed compose unit so it also starts after an instance reboot (restart: unless-stopped covers Docker restarts).
 

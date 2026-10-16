@@ -1,5 +1,6 @@
 """Incident memory, decision provenance and the human-confirmed dispatch action. All synthetic IDs."""
 import csv
+import os
 import re
 import time
 import uuid
@@ -170,6 +171,20 @@ def dispatch(decision_id):
 
 def clear(incident_id):
     return db.write("clear", {"incident_id": incident_id})[0][0]
+
+
+def expire_stale(now=None, expire_min=None):
+    """Demo self-healing: expire incidents older than expire_min (env DEMO_EXPIRE_MIN, default 30).
+
+    Incident status becomes 'expired' and units assigned to it return to 'available' (only available units can be
+    assigned, so that is their seed status). Hazards, decisions and callers are kept so memory still works.
+    Returns (incidents_expired, units_freed).
+    """
+    now = int(time.time()) if now is None else int(now)
+    if expire_min is None:
+        expire_min = float(os.getenv("DEMO_EXPIRE_MIN", "30"))
+    rows = db.write("expire_incidents", {"cutoff": int(now - expire_min * 60)})
+    return (rows[0][0], rows[0][1] or 0) if rows else (0, 0)
 
 
 def run_call(caller_id, address_label, lat, lon, type, now=None):
