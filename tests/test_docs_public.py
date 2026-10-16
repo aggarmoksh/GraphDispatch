@@ -62,6 +62,14 @@ def test_readme_numbers_match_their_source_files():
     assert f"{len(db.queries())} named" in readme
 
 
-def test_license_is_mit_with_the_placeholder_still_to_fill():
+def test_no_copyright_holder_placeholder_remains_anywhere_in_the_repo():
+    import subprocess
+    needle = "[COPYRIGHT" + " HOLDER]"                       # built in two parts so this file does not match itself
+    standin = "<YOUR FULL" + " NAME>"
+    files = subprocess.run(["git", "ls-files", "--cached", "--others", "--exclude-standard"], cwd=ROOT, capture_output=True,
+                           text=True, check=True).stdout.split()
+    hits = [f for f in files if (ROOT / f).is_file()
+            and any(x in (ROOT / f).read_text(encoding="utf-8", errors="ignore") for x in (needle, standin))]
+    assert not hits, f"license holder placeholder still present in: {hits}"
     lic = (ROOT / "LICENSE").read_text(encoding="utf-8")
-    assert lic.startswith("MIT License") and "[COPYRIGHT HOLDER]" in lic
+    assert lic.startswith("MIT License") and "Copyright (c) 2026 " in lic
