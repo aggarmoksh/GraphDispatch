@@ -1,0 +1,4153 @@
+{
+ "protocol_commit": "303b997",
+ "configs_run": [
+  "A",
+  "B",
+  "C"
+ ],
+ "rows": [
+  {
+   "scenario": "S1",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": true,
+    "memory_recall": null
+   },
+   "latency_ms": 42.44770000514109,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E7",
+      "capability": "als",
+      "eta_s": 132.287096991681
+     },
+     {
+      "unit_id": "M7",
+      "capability": "transport",
+      "eta_s": 132.287096991681
+     }
+    ],
+    "hospital": "Regional Medical Center of San Jose",
+    "hospital_eta": 550.503230630158,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 42.44770000514109,
+    "error": null
+   }
+  },
+  {
+   "scenario": "S2",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 42.92090000672033,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E8",
+      "capability": "als",
+      "eta_s": 217.496048149147
+     },
+     {
+      "unit_id": "M5",
+      "capability": "transport",
+      "eta_s": 314.315640488848
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": 608.334031489019,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 42.92090000672033,
+    "error": null
+   }
+  },
+  {
+   "scenario": "S3",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 39.48340000351891,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E3",
+      "capability": "als",
+      "eta_s": 184.476343893019
+     },
+     {
+      "unit_id": "M3",
+      "capability": "transport",
+      "eta_s": 184.476343893019
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": 523.574908973474,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 39.48340000351891,
+    "error": null
+   }
+  },
+  {
+   "scenario": "S4",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 24.80900000227848,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E30",
+      "capability": "fire_suppression",
+      "eta_s": 135.92166455511
+     },
+     {
+      "unit_id": "HM26",
+      "capability": "hazmat",
+      "eta_s": 477.056986829306
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 24.80900000227848,
+    "error": null
+   }
+  },
+  {
+   "scenario": "S5",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 25.266900003771298,
+   "result": {
+    "units": [
+     {
+      "unit_id": "T8",
+      "capability": "ladder",
+      "eta_s": 51.490070027589
+     },
+     {
+      "unit_id": "E1",
+      "capability": "fire_suppression",
+      "eta_s": 122.014145789004
+     },
+     {
+      "unit_id": "T1",
+      "capability": "fire_suppression",
+      "eta_s": 122.014145789004
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 25.266900003771298,
+    "error": null
+   }
+  },
+  {
+   "scenario": "O1",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": true,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 29.458299999532755,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E1",
+      "capability": "fire_suppression",
+      "eta_s": 47.2325361670753
+     },
+     {
+      "unit_id": "T1",
+      "capability": "ladder",
+      "eta_s": 47.2325361670753
+     },
+     {
+      "unit_id": "E8",
+      "capability": "fire_suppression",
+      "eta_s": 134.277676892703
+     },
+     {
+      "unit_id": "HM26",
+      "capability": "hazmat",
+      "eta_s": 429.283277190767
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "unmet": [],
+    "recalled_hazards": [
+     "oxygen_storage"
+    ],
+    "recalled_incident_types": [],
+    "latency_ms": 29.458299999532755,
+    "error": null
+   }
+  },
+  {
+   "scenario": "O2",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": true
+   },
+   "latency_ms": 34.18319999764208,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E1",
+      "capability": "als",
+      "eta_s": 47.2325361670753
+     },
+     {
+      "unit_id": "M1",
+      "capability": "transport",
+      "eta_s": 47.2325361670753
+     }
+    ],
+    "hospital": "O'Connor Hospital",
+    "hospital_eta": 352.305417562217,
+    "unmet": [],
+    "recalled_hazards": [
+     "oxygen_storage"
+    ],
+    "recalled_incident_types": [
+     "structure_fire"
+    ],
+    "latency_ms": 34.18319999764208,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R01",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 33.3113999950001,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E7",
+      "capability": "fire_suppression",
+      "eta_s": 226.248416349773
+     },
+     {
+      "unit_id": "E10",
+      "capability": "fire_suppression",
+      "eta_s": 272.592431479004
+     },
+     {
+      "unit_id": "T4",
+      "capability": "ladder",
+      "eta_s": 306.410305863501
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 33.3113999950001,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R02",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 34.86739999789279,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E10",
+      "capability": "als",
+      "eta_s": 207.665280537485
+     },
+     {
+      "unit_id": "M10",
+      "capability": "transport",
+      "eta_s": 207.665280537485
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": 135.140850865303,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 34.86739999789279,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R03",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": true,
+    "memory_recall": null
+   },
+   "latency_ms": 37.91099999943981,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E8",
+      "capability": "als",
+      "eta_s": 110.582813796125
+     },
+     {
+      "unit_id": "M1",
+      "capability": "transport",
+      "eta_s": 210.0794244274
+     }
+    ],
+    "hospital": "Regional Medical Center of San Jose",
+    "hospital_eta": 232.078449093574,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 37.91099999943981,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R04",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 39.770899995346554,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E7",
+      "capability": "als",
+      "eta_s": 248.97888486734
+     },
+     {
+      "unit_id": "M7",
+      "capability": "transport",
+      "eta_s": 248.97888486734
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": 456.436138203192,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 39.770899995346554,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R05",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 36.99600000254577,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E10",
+      "capability": "als",
+      "eta_s": 132.709101734807
+     },
+     {
+      "unit_id": "M10",
+      "capability": "transport",
+      "eta_s": 132.709101734807
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": 216.616225661872,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 36.99600000254577,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R06",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 36.49799999402603,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E30",
+      "capability": "als",
+      "eta_s": 140.371251013096
+     },
+     {
+      "unit_id": "M3",
+      "capability": "transport",
+      "eta_s": 161.43693336699
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": 339.502023717385,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 36.49799999402603,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R07",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 32.093399997393135,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E4",
+      "capability": "fire_suppression",
+      "eta_s": 130.009213553228
+     },
+     {
+      "unit_id": "HM26",
+      "capability": "hazmat",
+      "eta_s": 576.952597037449
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 32.093399997393135,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R08",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 29.557300003943965,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E1",
+      "capability": "fire_suppression",
+      "eta_s": 111.561276167305
+     },
+     {
+      "unit_id": "T1",
+      "capability": "ladder",
+      "eta_s": 111.561276167305
+     },
+     {
+      "unit_id": "E8",
+      "capability": "fire_suppression",
+      "eta_s": 125.39569486027
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 29.557300003943965,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R09",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 43.806399997265544,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E3",
+      "capability": "als",
+      "eta_s": 102.298151437237
+     },
+     {
+      "unit_id": "M3",
+      "capability": "transport",
+      "eta_s": 102.298151437237
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": 415.766486905213,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 43.806399997265544,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R10",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": true,
+    "memory_recall": null
+   },
+   "latency_ms": 53.28839999856427,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E7",
+      "capability": "als",
+      "eta_s": 296.954236548897
+     },
+     {
+      "unit_id": "M7",
+      "capability": "transport",
+      "eta_s": 296.954236548897
+     }
+    ],
+    "hospital": "Regional Medical Center of San Jose",
+    "hospital_eta": 643.912102230762,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 53.28839999856427,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R11",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 40.68900000129361,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E8",
+      "capability": "als",
+      "eta_s": 142.974284070356
+     },
+     {
+      "unit_id": "M1",
+      "capability": "transport",
+      "eta_s": 254.717484574571
+     }
+    ],
+    "hospital": "Regional Medical Center of San Jose",
+    "hospital_eta": 199.199288157848,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 40.68900000129361,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R12",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 42.005499999504536,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E4",
+      "capability": "als",
+      "eta_s": 128.765884323722
+     },
+     {
+      "unit_id": "M10",
+      "capability": "transport",
+      "eta_s": 129.35125674199
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": 113.369734388203,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 42.005499999504536,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R13",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 44.20180000306573,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E5",
+      "capability": "als",
+      "eta_s": 138.165747925054
+     },
+     {
+      "unit_id": "M5",
+      "capability": "transport",
+      "eta_s": 138.165747925054
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": 426.095339400492,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 44.20180000306573,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R14",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 38.35819999949308,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E4",
+      "capability": "fire_suppression",
+      "eta_s": 153.219422274396
+     },
+     {
+      "unit_id": "HM26",
+      "capability": "hazmat",
+      "eta_s": 634.057115961081
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 38.35819999949308,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R15",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 36.60930000478402,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E5",
+      "capability": "fire_suppression",
+      "eta_s": 178.921613936942
+     },
+     {
+      "unit_id": "T5",
+      "capability": "ladder",
+      "eta_s": 178.921613936942
+     },
+     {
+      "unit_id": "E8",
+      "capability": "fire_suppression",
+      "eta_s": 182.856060852678
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 36.60930000478402,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R16",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 41.601300006732345,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E8",
+      "capability": "als",
+      "eta_s": 159.454109611145
+     },
+     {
+      "unit_id": "M5",
+      "capability": "transport",
+      "eta_s": 256.273701950846
+     }
+    ],
+    "hospital": "Regional Medical Center of San Jose",
+    "hospital_eta": 384.47043891031,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 41.601300006732345,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R17",
+   "config": "A",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": true,
+    "memory_recall": null
+   },
+   "latency_ms": 48.30939999374095,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E3",
+      "capability": "als",
+      "eta_s": 266.696878545245
+     },
+     {
+      "unit_id": "M3",
+      "capability": "transport",
+      "eta_s": 266.696878545245
+     }
+    ],
+    "hospital": "Regional Medical Center of San Jose",
+    "hospital_eta": 267.710108663542,
+    "unmet": [],
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 48.30939999374095,
+    "error": null
+   }
+  },
+  {
+   "scenario": "S1",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": true,
+    "memory_recall": null
+   },
+   "latency_ms": 0.06939999730093405,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E7",
+      "capability": "als",
+      "eta_s": 128.0934998338286
+     },
+     {
+      "unit_id": "M7",
+      "capability": "transport",
+      "eta_s": 128.0934998338286
+     }
+    ],
+    "hospital": "Regional Medical Center of San Jose",
+    "hospital_eta": 595.0261621855757,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.06939999730093405,
+    "error": null
+   }
+  },
+  {
+   "scenario": "S2",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 0.03650000144261867,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E8",
+      "capability": "als",
+      "eta_s": 184.43106013146468
+     },
+     {
+      "unit_id": "M5",
+      "capability": "transport",
+      "eta_s": 296.53914572363215
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": 654.8691729219526,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.03650000144261867,
+    "error": null
+   }
+  },
+  {
+   "scenario": "S3",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": false,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 0.0318000020342879,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E26",
+      "capability": "als",
+      "eta_s": 77.71612468686106
+     },
+     {
+      "unit_id": "M26",
+      "capability": "transport",
+      "eta_s": 77.71612468686106
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": 496.8843937981684,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.0318000020342879,
+    "error": null
+   }
+  },
+  {
+   "scenario": "S4",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": false,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 0.022899999748915434,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E4",
+      "capability": "fire_suppression",
+      "eta_s": 97.62619609414867
+     },
+     {
+      "unit_id": "HM26",
+      "capability": "hazmat",
+      "eta_s": 417.4854783482026
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.022899999748915434,
+    "error": null
+   }
+  },
+  {
+   "scenario": "S5",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 0.02559999848017469,
+   "result": {
+    "units": [
+     {
+      "unit_id": "T8",
+      "capability": "ladder",
+      "eta_s": 40.67160111802321
+     },
+     {
+      "unit_id": "E1",
+      "capability": "fire_suppression",
+      "eta_s": 111.62008644567271
+     },
+     {
+      "unit_id": "T1",
+      "capability": "fire_suppression",
+      "eta_s": 111.62008644567271
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.02559999848017469,
+    "error": null
+   }
+  },
+  {
+   "scenario": "O1",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": false,
+    "required_covered": false,
+    "hazard_unit_included": false,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 0.025300003471784294,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E1",
+      "capability": "fire_suppression",
+      "eta_s": 39.90897167799055
+     },
+     {
+      "unit_id": "T1",
+      "capability": "ladder",
+      "eta_s": 39.90897167799055
+     },
+     {
+      "unit_id": "E30",
+      "capability": "fire_suppression",
+      "eta_s": 96.74604293960252
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.025300003471784294,
+    "error": null
+   }
+  },
+  {
+   "scenario": "O2",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": false
+   },
+   "latency_ms": 0.11770000128308311,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E1",
+      "capability": "als",
+      "eta_s": 39.90897167799055
+     },
+     {
+      "unit_id": "M1",
+      "capability": "transport",
+      "eta_s": 39.90897167799055
+     }
+    ],
+    "hospital": "O'Connor Hospital",
+    "hospital_eta": 326.11863893797135,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.11770000128308311,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R01",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 0.02710000262595713,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E7",
+      "capability": "fire_suppression",
+      "eta_s": 171.6833111730461
+     },
+     {
+      "unit_id": "E10",
+      "capability": "fire_suppression",
+      "eta_s": 220.72763196292243
+     },
+     {
+      "unit_id": "T4",
+      "capability": "ladder",
+      "eta_s": 280.92059242895414
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.02710000262595713,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R02",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 0.030700000934302807,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E10",
+      "capability": "als",
+      "eta_s": 146.4436401531005
+     },
+     {
+      "unit_id": "M10",
+      "capability": "transport",
+      "eta_s": 146.4436401531005
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": 101.804814715907,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.030700000934302807,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R03",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": true,
+    "memory_recall": null
+   },
+   "latency_ms": 0.03170000127283856,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E8",
+      "capability": "als",
+      "eta_s": 64.90547653136092
+     },
+     {
+      "unit_id": "M1",
+      "capability": "transport",
+      "eta_s": 174.7557231269005
+     }
+    ],
+    "hospital": "Regional Medical Center of San Jose",
+    "hospital_eta": 184.40638857426978,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.03170000127283856,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R04",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 0.029800001357216388,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E7",
+      "capability": "als",
+      "eta_s": 216.49711531519876
+     },
+     {
+      "unit_id": "M7",
+      "capability": "transport",
+      "eta_s": 216.49711531519876
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": 406.54686879197254,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.029800001357216388,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R05",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 0.030000002880115062,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E10",
+      "capability": "als",
+      "eta_s": 94.9493776163813
+     },
+     {
+      "unit_id": "M10",
+      "capability": "transport",
+      "eta_s": 94.9493776163813
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": 140.50368516830326,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.030000002880115062,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R06",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 0.029199996788520366,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E30",
+      "capability": "als",
+      "eta_s": 85.34732642460646
+     },
+     {
+      "unit_id": "M3",
+      "capability": "transport",
+      "eta_s": 110.59394465549462
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": 285.65035395059266,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.029199996788520366,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R07",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 0.021699997887481004,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E4",
+      "capability": "fire_suppression",
+      "eta_s": 105.6324789542686
+     },
+     {
+      "unit_id": "HM26",
+      "capability": "hazmat",
+      "eta_s": 497.23297205672236
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.021699997887481004,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R08",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 0.024700006179045886,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E1",
+      "capability": "fire_suppression",
+      "eta_s": 73.4304537823992
+     },
+     {
+      "unit_id": "T1",
+      "capability": "ladder",
+      "eta_s": 73.4304537823992
+     },
+     {
+      "unit_id": "E8",
+      "capability": "fire_suppression",
+      "eta_s": 91.77565180484747
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.024700006179045886,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R09",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 0.0301000036415644,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E3",
+      "capability": "als",
+      "eta_s": 71.87940574998387
+     },
+     {
+      "unit_id": "M3",
+      "capability": "transport",
+      "eta_s": 71.87940574998387
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": 343.7738832912547,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.0301000036415644,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R10",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": true,
+    "memory_recall": null
+   },
+   "latency_ms": 0.03060000017285347,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E7",
+      "capability": "als",
+      "eta_s": 222.42843751934436
+     },
+     {
+      "unit_id": "M7",
+      "capability": "transport",
+      "eta_s": 222.42843751934436
+     }
+    ],
+    "hospital": "Regional Medical Center of San Jose",
+    "hospital_eta": 627.9863518623874,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.03060000017285347,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R11",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": false,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 0.03489999653538689,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E8",
+      "capability": "als",
+      "eta_s": 106.36309327179607
+     },
+     {
+      "unit_id": "M5",
+      "capability": "transport",
+      "eta_s": 198.44567270883195
+     }
+    ],
+    "hospital": "Regional Medical Center of San Jose",
+    "hospital_eta": 154.79659072303113,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.03489999653538689,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R12",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 0.02989999484270811,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E4",
+      "capability": "als",
+      "eta_s": 85.0880374427312
+     },
+     {
+      "unit_id": "M10",
+      "capability": "transport",
+      "eta_s": 109.72610830526116
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": 96.0431765427253,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.02989999484270811,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R13",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 0.029499999072868377,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E5",
+      "capability": "als",
+      "eta_s": 68.62469749005682
+     },
+     {
+      "unit_id": "M5",
+      "capability": "transport",
+      "eta_s": 68.62469749005682
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": 475.06376182916136,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.029499999072868377,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R14",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 0.02119999408023432,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E4",
+      "capability": "fire_suppression",
+      "eta_s": 102.3393111856445
+     },
+     {
+      "unit_id": "HM26",
+      "capability": "hazmat",
+      "eta_s": 566.4117056917962
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.02119999408023432,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R15",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 0.024499997380189598,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E5",
+      "capability": "fire_suppression",
+      "eta_s": 128.90003339245118
+     },
+     {
+      "unit_id": "T5",
+      "capability": "ladder",
+      "eta_s": 128.90003339245118
+     },
+     {
+      "unit_id": "E8",
+      "capability": "fire_suppression",
+      "eta_s": 138.66697589844065
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.024499997380189598,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R16",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 0.028800001018680632,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E8",
+      "capability": "als",
+      "eta_s": 112.3756733615292
+     },
+     {
+      "unit_id": "M5",
+      "capability": "transport",
+      "eta_s": 218.4813517007746
+     }
+    ],
+    "hospital": "Regional Medical Center of San Jose",
+    "hospital_eta": 133.8550503308695,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.028800001018680632,
+    "error": null
+   }
+  },
+  {
+   "scenario": "R17",
+   "config": "B",
+   "metrics": {
+    "unit_set_match": false,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": true,
+    "memory_recall": null
+   },
+   "latency_ms": 0.029900002118665725,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E8",
+      "capability": "als",
+      "eta_s": 212.3135894754527
+     },
+     {
+      "unit_id": "M26",
+      "capability": "transport",
+      "eta_s": 259.93060716784163
+     }
+    ],
+    "hospital": "Regional Medical Center of San Jose",
+    "hospital_eta": 208.47184516106896,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 0.029900002118665725,
+    "error": null
+   }
+  },
+  {
+   "scenario": "S1",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": true,
+    "memory_recall": null
+   },
+   "latency_ms": 1782.7410000027157,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E7",
+      "capability": "als"
+     },
+     {
+      "unit_id": "M7",
+      "capability": "transport"
+     }
+    ],
+    "hospital": "Regional Medical Center of San Jose",
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1782.7410000027157,
+    "input_tokens": 2126,
+    "output_tokens": 126,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "als",
+       "unit_ids": [
+        "E7"
+       ]
+      },
+      {
+       "capability": "transport",
+       "unit_ids": [
+        "M7"
+       ]
+      }
+     ],
+     "hospital": "Regional Medical Center of San Jose",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "S2",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": false,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 1310.6920999998692,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E5",
+      "capability": "als"
+     },
+     {
+      "unit_id": "M5",
+      "capability": "transport"
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1310.6920999998692,
+    "input_tokens": 2121,
+    "output_tokens": 125,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "als",
+       "unit_ids": [
+        "E5"
+       ]
+      },
+      {
+       "capability": "transport",
+       "unit_ids": [
+        "M5"
+       ]
+      }
+     ],
+     "hospital": "Santa Clara Valley Medical Center",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "S3",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 1335.1203999991412,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E3",
+      "capability": "als"
+     },
+     {
+      "unit_id": "M3",
+      "capability": "transport"
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1335.1203999991412,
+    "input_tokens": 2127,
+    "output_tokens": 125,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "als",
+       "unit_ids": [
+        "E3"
+       ]
+      },
+      {
+       "capability": "transport",
+       "unit_ids": [
+        "M3"
+       ]
+      }
+     ],
+     "hospital": "Santa Clara Valley Medical Center",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "S4",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": false,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 1332.3621000017738,
+   "result": {
+    "units": [
+     {
+      "unit_id": "HM26",
+      "capability": "hazmat"
+     },
+     {
+      "unit_id": "E4",
+      "capability": "fire_suppression"
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1332.3621000017738,
+    "input_tokens": 2118,
+    "output_tokens": 126,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "hazmat",
+       "unit_ids": [
+        "HM26"
+       ]
+      },
+      {
+       "capability": "fire_suppression",
+       "unit_ids": [
+        "E4"
+       ]
+      }
+     ],
+     "hospital": "none",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "S5",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": false,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 1218.683899998723,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E5",
+      "capability": "fire_suppression"
+     },
+     {
+      "unit_id": "E1",
+      "capability": "fire_suppression"
+     },
+     {
+      "unit_id": "T5",
+      "capability": "ladder"
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1218.683899998723,
+    "input_tokens": 2115,
+    "output_tokens": 128,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "fire_suppression",
+       "unit_ids": [
+        "E5",
+        "E1"
+       ]
+      },
+      {
+       "capability": "ladder",
+       "unit_ids": [
+        "T5"
+       ]
+      }
+     ],
+     "hospital": "none",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "O1",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": false,
+    "required_covered": true,
+    "hazard_unit_included": true,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 1585.013900003105,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E1",
+      "capability": "fire_suppression"
+     },
+     {
+      "unit_id": "E30",
+      "capability": "fire_suppression"
+     },
+     {
+      "unit_id": "HM26",
+      "capability": "hazmat"
+     },
+     {
+      "unit_id": "T1",
+      "capability": "ladder"
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "recalled_hazards": [
+     "oxygen_storage"
+    ],
+    "recalled_incident_types": [],
+    "latency_ms": 1585.013900003105,
+    "input_tokens": 2120,
+    "output_tokens": 169,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "fire_suppression",
+       "unit_ids": [
+        "E1",
+        "E30"
+       ]
+      },
+      {
+       "capability": "hazmat",
+       "unit_ids": [
+        "HM26"
+       ]
+      },
+      {
+       "capability": "ladder",
+       "unit_ids": [
+        "T1"
+       ]
+      }
+     ],
+     "hospital": "none",
+     "recalled_facts": [
+      "oxygen_storage hazard active at address requires hazmat x1"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "O2",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": true
+   },
+   "latency_ms": 1533.1474000049639,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E1",
+      "capability": "als"
+     },
+     {
+      "unit_id": "M1",
+      "capability": "transport"
+     }
+    ],
+    "hospital": "O'Connor Hospital",
+    "hospital_eta": null,
+    "recalled_hazards": [
+     "oxygen_storage"
+    ],
+    "recalled_incident_types": [
+     "structure_fire"
+    ],
+    "latency_ms": 1533.1474000049639,
+    "input_tokens": 2139,
+    "output_tokens": 145,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "als",
+       "unit_ids": [
+        "E1"
+       ]
+      },
+      {
+       "capability": "transport",
+       "unit_ids": [
+        "M1"
+       ]
+      }
+     ],
+     "hospital": "O'Connor Hospital",
+     "recalled_facts": [
+      "oxygen_storage hazard active at address",
+      "structure_fire incident within last 30 days"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "R01",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": false,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 1164.8806000011973,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E7",
+      "capability": "fire_suppression"
+     },
+     {
+      "unit_id": "E10",
+      "capability": "fire_suppression"
+     },
+     {
+      "unit_id": "T30",
+      "capability": "ladder"
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1164.8806000011973,
+    "input_tokens": 2117,
+    "output_tokens": 128,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "fire_suppression",
+       "unit_ids": [
+        "E7",
+        "E10"
+       ]
+      },
+      {
+       "capability": "ladder",
+       "unit_ids": [
+        "T30"
+       ]
+      }
+     ],
+     "hospital": "none",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "R02",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 1363.0525999979,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E10",
+      "capability": "als"
+     },
+     {
+      "unit_id": "M10",
+      "capability": "transport"
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1363.0525999979,
+    "input_tokens": 2125,
+    "output_tokens": 125,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "als",
+       "unit_ids": [
+        "E10"
+       ]
+      },
+      {
+       "capability": "transport",
+       "unit_ids": [
+        "M10"
+       ]
+      }
+     ],
+     "hospital": "Santa Clara Valley Medical Center",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "R03",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": false,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": true,
+    "memory_recall": null
+   },
+   "latency_ms": 1228.4633000017493,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E8",
+      "capability": "als"
+     },
+     {
+      "unit_id": "M3",
+      "capability": "transport"
+     }
+    ],
+    "hospital": "Regional Medical Center of San Jose",
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1228.4633000017493,
+    "input_tokens": 2128,
+    "output_tokens": 126,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "als",
+       "unit_ids": [
+        "E8"
+       ]
+      },
+      {
+       "capability": "transport",
+       "unit_ids": [
+        "M3"
+       ]
+      }
+     ],
+     "hospital": "Regional Medical Center of San Jose",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "R04",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": false,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": false,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 1295.0112000035006,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E5",
+      "capability": "als"
+     },
+     {
+      "unit_id": "M5",
+      "capability": "transport"
+     }
+    ],
+    "hospital": "Regional Medical Center of San Jose",
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1295.0112000035006,
+    "input_tokens": 2125,
+    "output_tokens": 126,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "als",
+       "unit_ids": [
+        "E5"
+       ]
+      },
+      {
+       "capability": "transport",
+       "unit_ids": [
+        "M5"
+       ]
+      }
+     ],
+     "hospital": "Regional Medical Center of San Jose",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "R05",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 1300.8708999986993,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E10",
+      "capability": "als"
+     },
+     {
+      "unit_id": "M10",
+      "capability": "transport"
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1300.8708999986993,
+    "input_tokens": 2129,
+    "output_tokens": 125,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "als",
+       "unit_ids": [
+        "E10"
+       ]
+      },
+      {
+       "capability": "transport",
+       "unit_ids": [
+        "M10"
+       ]
+      }
+     ],
+     "hospital": "Santa Clara Valley Medical Center",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "R06",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": false,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 1249.375700004748,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E6",
+      "capability": "als"
+     },
+     {
+      "unit_id": "M26",
+      "capability": "transport"
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1249.375700004748,
+    "input_tokens": 2123,
+    "output_tokens": 125,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "als",
+       "unit_ids": [
+        "E6"
+       ]
+      },
+      {
+       "capability": "transport",
+       "unit_ids": [
+        "M26"
+       ]
+      }
+     ],
+     "hospital": "Santa Clara Valley Medical Center",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "R07",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 1327.5775000001886,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E4",
+      "capability": "fire_suppression"
+     },
+     {
+      "unit_id": "HM26",
+      "capability": "hazmat"
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1327.5775000001886,
+    "input_tokens": 2120,
+    "output_tokens": 126,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "fire_suppression",
+       "unit_ids": [
+        "E4"
+       ]
+      },
+      {
+       "capability": "hazmat",
+       "unit_ids": [
+        "HM26"
+       ]
+      }
+     ],
+     "hospital": "none",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "R08",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": false,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 1192.1255999986897,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E8",
+      "capability": "fire_suppression"
+     },
+     {
+      "unit_id": "E1",
+      "capability": "fire_suppression"
+     },
+     {
+      "unit_id": "T8",
+      "capability": "ladder"
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1192.1255999986897,
+    "input_tokens": 2117,
+    "output_tokens": 128,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "fire_suppression",
+       "unit_ids": [
+        "E8",
+        "E1"
+       ]
+      },
+      {
+       "capability": "ladder",
+       "unit_ids": [
+        "T8"
+       ]
+      }
+     ],
+     "hospital": "none",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "R09",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 1244.61870000232,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E3",
+      "capability": "als"
+     },
+     {
+      "unit_id": "M3",
+      "capability": "transport"
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1244.61870000232,
+    "input_tokens": 2125,
+    "output_tokens": 125,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "als",
+       "unit_ids": [
+        "E3"
+       ]
+      },
+      {
+       "capability": "transport",
+       "unit_ids": [
+        "M3"
+       ]
+      }
+     ],
+     "hospital": "Santa Clara Valley Medical Center",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "R10",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": false,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": true,
+    "memory_recall": null
+   },
+   "latency_ms": 1237.727100000484,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E10",
+      "capability": "als"
+     },
+     {
+      "unit_id": "M10",
+      "capability": "transport"
+     }
+    ],
+    "hospital": "Regional Medical Center of San Jose",
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1237.727100000484,
+    "input_tokens": 2128,
+    "output_tokens": 126,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "als",
+       "unit_ids": [
+        "E10"
+       ]
+      },
+      {
+       "capability": "transport",
+       "unit_ids": [
+        "M10"
+       ]
+      }
+     ],
+     "hospital": "Regional Medical Center of San Jose",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "R11",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": false,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 1228.130899995449,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E8",
+      "capability": "als"
+     },
+     {
+      "unit_id": "M26",
+      "capability": "transport"
+     }
+    ],
+    "hospital": "Regional Medical Center of San Jose",
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1228.130899995449,
+    "input_tokens": 2125,
+    "output_tokens": 126,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "als",
+       "unit_ids": [
+        "E8"
+       ]
+      },
+      {
+       "capability": "transport",
+       "unit_ids": [
+        "M26"
+       ]
+      }
+     ],
+     "hospital": "Regional Medical Center of San Jose",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "R12",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": false,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 1270.9600000016508,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E10",
+      "capability": "als"
+     },
+     {
+      "unit_id": "M10",
+      "capability": "transport"
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1270.9600000016508,
+    "input_tokens": 2129,
+    "output_tokens": 125,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "als",
+       "unit_ids": [
+        "E10"
+       ]
+      },
+      {
+       "capability": "transport",
+       "unit_ids": [
+        "M10"
+       ]
+      }
+     ],
+     "hospital": "Santa Clara Valley Medical Center",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "R13",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 1233.6476000054972,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E5",
+      "capability": "als"
+     },
+     {
+      "unit_id": "M5",
+      "capability": "transport"
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1233.6476000054972,
+    "input_tokens": 2122,
+    "output_tokens": 125,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "als",
+       "unit_ids": [
+        "E5"
+       ]
+      },
+      {
+       "capability": "transport",
+       "unit_ids": [
+        "M5"
+       ]
+      }
+     ],
+     "hospital": "Santa Clara Valley Medical Center",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "R14",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": false,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 1335.0389000042924,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E10",
+      "capability": "fire_suppression"
+     },
+     {
+      "unit_id": "HM26",
+      "capability": "hazmat"
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1335.0389000042924,
+    "input_tokens": 2120,
+    "output_tokens": 126,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "fire_suppression",
+       "unit_ids": [
+        "E10"
+       ]
+      },
+      {
+       "capability": "hazmat",
+       "unit_ids": [
+        "HM26"
+       ]
+      }
+     ],
+     "hospital": "none",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "R15",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": null,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 1162.8086999990046,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E5",
+      "capability": "fire_suppression"
+     },
+     {
+      "unit_id": "E8",
+      "capability": "fire_suppression"
+     },
+     {
+      "unit_id": "T5",
+      "capability": "ladder"
+     }
+    ],
+    "hospital": null,
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1162.8086999990046,
+    "input_tokens": 2117,
+    "output_tokens": 128,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "fire_suppression",
+       "unit_ids": [
+        "E5",
+        "E8"
+       ]
+      },
+      {
+       "capability": "ladder",
+       "unit_ids": [
+        "T5"
+       ]
+      }
+     ],
+     "hospital": "none",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "R16",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": true,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": false,
+    "stroke_rule_correct": null,
+    "memory_recall": null
+   },
+   "latency_ms": 1277.688100002706,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E8",
+      "capability": "als"
+     },
+     {
+      "unit_id": "M5",
+      "capability": "transport"
+     }
+    ],
+    "hospital": "Santa Clara Valley Medical Center",
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1277.688100002706,
+    "input_tokens": 2125,
+    "output_tokens": 125,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "als",
+       "unit_ids": [
+        "E8"
+       ]
+      },
+      {
+       "capability": "transport",
+       "unit_ids": [
+        "M5"
+       ]
+      }
+     ],
+     "hospital": "Santa Clara Valley Medical Center",
+     "recalled_facts": []
+    }
+   }
+  },
+  {
+   "scenario": "R17",
+   "config": "C",
+   "metrics": {
+    "unit_set_match": false,
+    "required_covered": true,
+    "hazard_unit_included": null,
+    "hospital_correct": true,
+    "stroke_rule_correct": true,
+    "memory_recall": null
+   },
+   "latency_ms": 1206.8284999986645,
+   "result": {
+    "units": [
+     {
+      "unit_id": "E26",
+      "capability": "als"
+     },
+     {
+      "unit_id": "M26",
+      "capability": "transport"
+     }
+    ],
+    "hospital": "Regional Medical Center of San Jose",
+    "hospital_eta": null,
+    "recalled_hazards": [],
+    "recalled_incident_types": [],
+    "latency_ms": 1206.8284999986645,
+    "input_tokens": 2128,
+    "output_tokens": 126,
+    "error": null,
+    "raw": {
+     "assignments": [
+      {
+       "capability": "als",
+       "unit_ids": [
+        "E26"
+       ]
+      },
+      {
+       "capability": "transport",
+       "unit_ids": [
+        "M26"
+       ]
+      }
+     ],
+     "hospital": "Regional Medical Center of San Jose",
+     "recalled_facts": []
+    }
+   }
+  }
+ ],
+ "oracle": {
+  "S1": {
+   "incident_node": 65421694,
+   "requirements": {
+    "als": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "transport": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E7",
+     "capability": "als",
+     "eta_s": 132.28709699168093,
+     "station_id": 7
+    },
+    {
+     "unit_id": "M7",
+     "capability": "transport",
+     "eta_s": 132.28709699168093,
+     "station_id": 7
+    }
+   ],
+   "unmet": [],
+   "hospital": {
+    "osm_id": 403207487,
+    "name": "Regional Medical Center of San Jose",
+    "eta_s": 550.5032306301583
+   },
+   "nearest_hospital": {
+    "osm_id": 38899283,
+    "name": "O'Connor Hospital",
+    "eta_s": 48.87376454376119
+   },
+   "hospital_etas": {
+    "Santa Clara Valley Medical Center": 139.76629800080588,
+    "Regional Medical Center of San Jose": 550.5032306301583,
+    "O'Connor Hospital": 48.87376454376119
+   },
+   "hospital_rule": "bypass_used",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "S2": {
+   "incident_node": 65509485,
+   "requirements": {
+    "als": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "transport": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E8",
+     "capability": "als",
+     "eta_s": 217.4960481491468,
+     "station_id": 8
+    },
+    {
+     "unit_id": "M5",
+     "capability": "transport",
+     "eta_s": 314.31564048884843,
+     "station_id": 5
+    }
+   ],
+   "unmet": [],
+   "hospital": {
+    "osm_id": 609630707,
+    "name": "Santa Clara Valley Medical Center",
+    "eta_s": 608.3340314890195
+   },
+   "nearest_hospital": {
+    "osm_id": 403207487,
+    "name": "Regional Medical Center of San Jose",
+    "eta_s": 83.53335803585236
+   },
+   "hospital_etas": {
+    "Santa Clara Valley Medical Center": 608.3340314890195,
+    "Regional Medical Center of San Jose": 83.53335803585236,
+    "O'Connor Hospital": 516.6386474021884
+   },
+   "hospital_rule": "fastest_capable",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "S3": {
+   "incident_node": 65613970,
+   "requirements": {
+    "als": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "transport": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E3",
+     "capability": "als",
+     "eta_s": 184.47634389301868,
+     "station_id": 3
+    },
+    {
+     "unit_id": "M3",
+     "capability": "transport",
+     "eta_s": 184.47634389301868,
+     "station_id": 3
+    }
+   ],
+   "unmet": [],
+   "hospital": {
+    "osm_id": 609630707,
+    "name": "Santa Clara Valley Medical Center",
+    "eta_s": 523.5749089734743
+   },
+   "nearest_hospital": {
+    "osm_id": 403207487,
+    "name": "Regional Medical Center of San Jose",
+    "eta_s": 507.79325958189145
+   },
+   "hospital_etas": {
+    "Santa Clara Valley Medical Center": 523.5749089734743,
+    "Regional Medical Center of San Jose": 507.79325958189145,
+    "O'Connor Hospital": 544.9195094230623
+   },
+   "hospital_rule": "fastest_capable",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "S4": {
+   "incident_node": 353139733,
+   "requirements": {
+    "hazmat": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "fire_suppression": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E30",
+     "capability": "fire_suppression",
+     "eta_s": 135.9216645551103,
+     "station_id": 30
+    },
+    {
+     "unit_id": "HM26",
+     "capability": "hazmat",
+     "eta_s": 477.05698682930654,
+     "station_id": 26
+    }
+   ],
+   "unmet": [],
+   "hospital": null,
+   "nearest_hospital": null,
+   "hospital_etas": {},
+   "hospital_rule": "no_destination",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "S5": {
+   "incident_node": 65628102,
+   "requirements": {
+    "fire_suppression": {
+     "need": 2,
+     "sources": [
+      "base"
+     ]
+    },
+    "ladder": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "T8",
+     "capability": "ladder",
+     "eta_s": 51.490070027589034,
+     "station_id": 8
+    },
+    {
+     "unit_id": "E1",
+     "capability": "fire_suppression",
+     "eta_s": 122.01414578900386,
+     "station_id": 1
+    },
+    {
+     "unit_id": "T1",
+     "capability": "fire_suppression",
+     "eta_s": 122.01414578900386,
+     "station_id": 1
+    }
+   ],
+   "unmet": [],
+   "hospital": null,
+   "nearest_hospital": null,
+   "hospital_etas": {},
+   "hospital_rule": "no_destination",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "O1": {
+   "incident_node": 65459833,
+   "requirements": {
+    "fire_suppression": {
+     "need": 2,
+     "sources": [
+      "base"
+     ]
+    },
+    "ladder": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "hazmat": {
+     "need": 1,
+     "sources": [
+      "hazard:oxygen_storage"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E1",
+     "capability": "fire_suppression",
+     "eta_s": 47.232536167075246,
+     "station_id": 1
+    },
+    {
+     "unit_id": "T1",
+     "capability": "ladder",
+     "eta_s": 47.232536167075246,
+     "station_id": 1
+    },
+    {
+     "unit_id": "E8",
+     "capability": "fire_suppression",
+     "eta_s": 134.2776768927029,
+     "station_id": 8
+    },
+    {
+     "unit_id": "HM26",
+     "capability": "hazmat",
+     "eta_s": 429.2832771907674,
+     "station_id": 26
+    }
+   ],
+   "unmet": [],
+   "hospital": null,
+   "nearest_hospital": null,
+   "hospital_etas": {},
+   "hospital_rule": "no_destination",
+   "recall": {
+    "hazards": [
+     "oxygen_storage"
+    ],
+    "prior_incident_types": []
+   }
+  },
+  "O2": {
+   "incident_node": 65459833,
+   "requirements": {
+    "als": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "transport": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E1",
+     "capability": "als",
+     "eta_s": 47.232536167075246,
+     "station_id": 1
+    },
+    {
+     "unit_id": "M1",
+     "capability": "transport",
+     "eta_s": 47.232536167075246,
+     "station_id": 1
+    }
+   ],
+   "unmet": [],
+   "hospital": {
+    "osm_id": 38899283,
+    "name": "O'Connor Hospital",
+    "eta_s": 352.3054175622167
+   },
+   "nearest_hospital": {
+    "osm_id": 38899283,
+    "name": "O'Connor Hospital",
+    "eta_s": 352.3054175622167
+   },
+   "hospital_etas": {
+    "Santa Clara Valley Medical Center": 419.56941287312736,
+    "Regional Medical Center of San Jose": 384.7438086951796,
+    "O'Connor Hospital": 352.3054175622167
+   },
+   "hospital_rule": "fastest_capable",
+   "recall": {
+    "hazards": [
+     "oxygen_storage"
+    ],
+    "prior_incident_types": [
+     "structure_fire"
+    ]
+   }
+  },
+  "R01": {
+   "incident_node": 65532821,
+   "requirements": {
+    "fire_suppression": {
+     "need": 2,
+     "sources": [
+      "base"
+     ]
+    },
+    "ladder": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E7",
+     "capability": "fire_suppression",
+     "eta_s": 226.24841634977258,
+     "station_id": 7
+    },
+    {
+     "unit_id": "E10",
+     "capability": "fire_suppression",
+     "eta_s": 272.59243147900366,
+     "station_id": 10
+    },
+    {
+     "unit_id": "T4",
+     "capability": "ladder",
+     "eta_s": 306.4103058635009,
+     "station_id": 4
+    }
+   ],
+   "unmet": [],
+   "hospital": null,
+   "nearest_hospital": null,
+   "hospital_etas": {},
+   "hospital_rule": "no_destination",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "R02": {
+   "incident_node": 65641161,
+   "requirements": {
+    "als": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "transport": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E10",
+     "capability": "als",
+     "eta_s": 207.66528053748536,
+     "station_id": 10
+    },
+    {
+     "unit_id": "M10",
+     "capability": "transport",
+     "eta_s": 207.66528053748536,
+     "station_id": 10
+    }
+   ],
+   "unmet": [],
+   "hospital": {
+    "osm_id": 609630707,
+    "name": "Santa Clara Valley Medical Center",
+    "eta_s": 135.1408508653027
+   },
+   "nearest_hospital": {
+    "osm_id": 609630707,
+    "name": "Santa Clara Valley Medical Center",
+    "eta_s": 135.1408508653027
+   },
+   "hospital_etas": {
+    "Santa Clara Valley Medical Center": 135.1408508653027,
+    "Regional Medical Center of San Jose": 617.3724026346445,
+    "O'Connor Hospital": 170.74462970092685
+   },
+   "hospital_rule": "fastest_capable",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "R03": {
+   "incident_node": 65532761,
+   "requirements": {
+    "als": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "transport": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E8",
+     "capability": "als",
+     "eta_s": 110.58281379612532,
+     "station_id": 8
+    },
+    {
+     "unit_id": "M1",
+     "capability": "transport",
+     "eta_s": 210.0794244274002,
+     "station_id": 1
+    }
+   ],
+   "unmet": [],
+   "hospital": {
+    "osm_id": 403207487,
+    "name": "Regional Medical Center of San Jose",
+    "eta_s": 232.07844909357377
+   },
+   "nearest_hospital": {
+    "osm_id": 403207487,
+    "name": "Regional Medical Center of San Jose",
+    "eta_s": 232.07844909357377
+   },
+   "hospital_etas": {
+    "Santa Clara Valley Medical Center": 577.0966179724926,
+    "Regional Medical Center of San Jose": 232.07844909357377,
+    "O'Connor Hospital": 486.204084515448
+   },
+   "hospital_rule": "bypass_used",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "R04": {
+   "incident_node": 65574638,
+   "requirements": {
+    "als": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "transport": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E7",
+     "capability": "als",
+     "eta_s": 248.97888486734018,
+     "station_id": 7
+    },
+    {
+     "unit_id": "M7",
+     "capability": "transport",
+     "eta_s": 248.97888486734018,
+     "station_id": 7
+    }
+   ],
+   "unmet": [],
+   "hospital": {
+    "osm_id": 609630707,
+    "name": "Santa Clara Valley Medical Center",
+    "eta_s": 456.43613820319206
+   },
+   "nearest_hospital": {
+    "osm_id": 38899283,
+    "name": "O'Connor Hospital",
+    "eta_s": 364.7407541163609
+   },
+   "hospital_etas": {
+    "Santa Clara Valley Medical Center": 456.43613820319206,
+    "Regional Medical Center of San Jose": 598.9575151858189,
+    "O'Connor Hospital": 364.7407541163609
+   },
+   "hospital_rule": "fastest_capable",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "R05": {
+   "incident_node": 65468731,
+   "requirements": {
+    "als": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "transport": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E10",
+     "capability": "als",
+     "eta_s": 132.70910173480726,
+     "station_id": 10
+    },
+    {
+     "unit_id": "M10",
+     "capability": "transport",
+     "eta_s": 132.70910173480726,
+     "station_id": 10
+    }
+   ],
+   "unmet": [],
+   "hospital": {
+    "osm_id": 609630707,
+    "name": "Santa Clara Valley Medical Center",
+    "eta_s": 216.61622566187202
+   },
+   "nearest_hospital": {
+    "osm_id": 38899283,
+    "name": "O'Connor Hospital",
+    "eta_s": 64.16708233099467
+   },
+   "hospital_etas": {
+    "Santa Clara Valley Medical Center": 216.61622566187202,
+    "Regional Medical Center of San Jose": 587.8862474476391,
+    "O'Connor Hospital": 64.16708233099467
+   },
+   "hospital_rule": "fastest_capable",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "R06": {
+   "incident_node": 65433168,
+   "requirements": {
+    "als": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "transport": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E30",
+     "capability": "als",
+     "eta_s": 140.3712510130959,
+     "station_id": 30
+    },
+    {
+     "unit_id": "M3",
+     "capability": "transport",
+     "eta_s": 161.4369333669904,
+     "station_id": 3
+    }
+   ],
+   "unmet": [],
+   "hospital": {
+    "osm_id": 609630707,
+    "name": "Santa Clara Valley Medical Center",
+    "eta_s": 339.50202371738544
+   },
+   "nearest_hospital": {
+    "osm_id": 609630707,
+    "name": "Santa Clara Valley Medical Center",
+    "eta_s": 339.50202371738544
+   },
+   "hospital_etas": {
+    "Santa Clara Valley Medical Center": 339.50202371738544,
+    "Regional Medical Center of San Jose": 552.303935914082,
+    "O'Connor Hospital": 363.1005527385808
+   },
+   "hospital_rule": "fastest_capable",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "R07": {
+   "incident_node": 65665051,
+   "requirements": {
+    "hazmat": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "fire_suppression": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E4",
+     "capability": "fire_suppression",
+     "eta_s": 130.00921355322782,
+     "station_id": 4
+    },
+    {
+     "unit_id": "HM26",
+     "capability": "hazmat",
+     "eta_s": 576.9525970374491,
+     "station_id": 26
+    }
+   ],
+   "unmet": [],
+   "hospital": null,
+   "nearest_hospital": null,
+   "hospital_etas": {},
+   "hospital_rule": "no_destination",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "R08": {
+   "incident_node": 65532743,
+   "requirements": {
+    "fire_suppression": {
+     "need": 2,
+     "sources": [
+      "base"
+     ]
+    },
+    "ladder": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E1",
+     "capability": "fire_suppression",
+     "eta_s": 111.56127616730502,
+     "station_id": 1
+    },
+    {
+     "unit_id": "T1",
+     "capability": "ladder",
+     "eta_s": 111.56127616730502,
+     "station_id": 1
+    },
+    {
+     "unit_id": "E8",
+     "capability": "fire_suppression",
+     "eta_s": 125.39569486027008,
+     "station_id": 8
+    }
+   ],
+   "unmet": [],
+   "hospital": null,
+   "nearest_hospital": null,
+   "hospital_etas": {},
+   "hospital_rule": "no_destination",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "R09": {
+   "incident_node": 65426416,
+   "requirements": {
+    "als": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "transport": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E3",
+     "capability": "als",
+     "eta_s": 102.29815143723745,
+     "station_id": 3
+    },
+    {
+     "unit_id": "M3",
+     "capability": "transport",
+     "eta_s": 102.29815143723745,
+     "station_id": 3
+    }
+   ],
+   "unmet": [],
+   "hospital": {
+    "osm_id": 609630707,
+    "name": "Santa Clara Valley Medical Center",
+    "eta_s": 415.7664869052131
+   },
+   "nearest_hospital": {
+    "osm_id": 609630707,
+    "name": "Santa Clara Valley Medical Center",
+    "eta_s": 415.7664869052131
+   },
+   "hospital_etas": {
+    "Santa Clara Valley Medical Center": 415.7664869052131,
+    "Regional Medical Center of San Jose": 512.6807977603426,
+    "O'Connor Hospital": 418.77242757644643
+   },
+   "hospital_rule": "fastest_capable",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "R10": {
+   "incident_node": 286891748,
+   "requirements": {
+    "als": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "transport": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E7",
+     "capability": "als",
+     "eta_s": 296.95423654889703,
+     "station_id": 7
+    },
+    {
+     "unit_id": "M7",
+     "capability": "transport",
+     "eta_s": 296.95423654889703,
+     "station_id": 7
+    }
+   ],
+   "unmet": [],
+   "hospital": {
+    "osm_id": 403207487,
+    "name": "Regional Medical Center of San Jose",
+    "eta_s": 643.9121022307615
+   },
+   "nearest_hospital": {
+    "osm_id": 38899283,
+    "name": "O'Connor Hospital",
+    "eta_s": 409.69534116130353
+   },
+   "hospital_etas": {
+    "Santa Clara Valley Medical Center": 501.3907252481347,
+    "Regional Medical Center of San Jose": 643.9121022307615,
+    "O'Connor Hospital": 409.69534116130353
+   },
+   "hospital_rule": "bypass_used",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "R11": {
+   "incident_node": 65583687,
+   "requirements": {
+    "als": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "transport": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E8",
+     "capability": "als",
+     "eta_s": 142.97428407035585,
+     "station_id": 8
+    },
+    {
+     "unit_id": "M1",
+     "capability": "transport",
+     "eta_s": 254.71748457457093,
+     "station_id": 1
+    }
+   ],
+   "unmet": [],
+   "hospital": {
+    "osm_id": 403207487,
+    "name": "Regional Medical Center of San Jose",
+    "eta_s": 199.19928815784797
+   },
+   "nearest_hospital": {
+    "osm_id": 403207487,
+    "name": "Regional Medical Center of San Jose",
+    "eta_s": 199.19928815784797
+   },
+   "hospital_etas": {
+    "Santa Clara Valley Medical Center": 581.1576100115807,
+    "Regional Medical Center of San Jose": 199.19928815784797,
+    "O'Connor Hospital": 489.46222592474965
+   },
+   "hospital_rule": "fastest_capable",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "R12": {
+   "incident_node": 281447511,
+   "requirements": {
+    "als": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "transport": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E4",
+     "capability": "als",
+     "eta_s": 128.7658843237222,
+     "station_id": 4
+    },
+    {
+     "unit_id": "M10",
+     "capability": "transport",
+     "eta_s": 129.35125674198963,
+     "station_id": 10
+    }
+   ],
+   "unmet": [],
+   "hospital": {
+    "osm_id": 609630707,
+    "name": "Santa Clara Valley Medical Center",
+    "eta_s": 113.36973438820287
+   },
+   "nearest_hospital": {
+    "osm_id": 38899283,
+    "name": "O'Connor Hospital",
+    "eta_s": 85.02496181181571
+   },
+   "hospital_etas": {
+    "Santa Clara Valley Medical Center": 113.36973438820287,
+    "Regional Medical Center of San Jose": 588.3291505354117,
+    "O'Connor Hospital": 85.02496181181571
+   },
+   "hospital_rule": "fastest_capable",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "R13": {
+   "incident_node": 65466442,
+   "requirements": {
+    "als": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "transport": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E5",
+     "capability": "als",
+     "eta_s": 138.1657479250536,
+     "station_id": 5
+    },
+    {
+     "unit_id": "M5",
+     "capability": "transport",
+     "eta_s": 138.1657479250536,
+     "station_id": 5
+    }
+   ],
+   "unmet": [],
+   "hospital": {
+    "osm_id": 609630707,
+    "name": "Santa Clara Valley Medical Center",
+    "eta_s": 426.09533940049147
+   },
+   "nearest_hospital": {
+    "osm_id": 38899283,
+    "name": "O'Connor Hospital",
+    "eta_s": 334.3999553136603
+   },
+   "hospital_etas": {
+    "Santa Clara Valley Medical Center": 426.09533940049147,
+    "Regional Medical Center of San Jose": 365.78918606103633,
+    "O'Connor Hospital": 334.3999553136603
+   },
+   "hospital_rule": "fastest_capable",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "R14": {
+   "incident_node": 65526630,
+   "requirements": {
+    "hazmat": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "fire_suppression": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E4",
+     "capability": "fire_suppression",
+     "eta_s": 153.21942227439573,
+     "station_id": 4
+    },
+    {
+     "unit_id": "HM26",
+     "capability": "hazmat",
+     "eta_s": 634.0571159610811,
+     "station_id": 26
+    }
+   ],
+   "unmet": [],
+   "hospital": null,
+   "nearest_hospital": null,
+   "hospital_etas": {},
+   "hospital_rule": "no_destination",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "R15": {
+   "incident_node": 65487663,
+   "requirements": {
+    "fire_suppression": {
+     "need": 2,
+     "sources": [
+      "base"
+     ]
+    },
+    "ladder": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E5",
+     "capability": "fire_suppression",
+     "eta_s": 178.9216139369421,
+     "station_id": 5
+    },
+    {
+     "unit_id": "T5",
+     "capability": "ladder",
+     "eta_s": 178.9216139369421,
+     "station_id": 5
+    },
+    {
+     "unit_id": "E8",
+     "capability": "fire_suppression",
+     "eta_s": 182.8560608526775,
+     "station_id": 8
+    }
+   ],
+   "unmet": [],
+   "hospital": null,
+   "nearest_hospital": null,
+   "hospital_etas": {},
+   "hospital_rule": "no_destination",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "R16": {
+   "incident_node": 3987797737,
+   "requirements": {
+    "als": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "transport": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E8",
+     "capability": "als",
+     "eta_s": 159.45410961114456,
+     "station_id": 8
+    },
+    {
+     "unit_id": "M5",
+     "capability": "transport",
+     "eta_s": 256.2737019508461,
+     "station_id": 5
+    }
+   ],
+   "unmet": [],
+   "hospital": {
+    "osm_id": 403207487,
+    "name": "Regional Medical Center of San Jose",
+    "eta_s": 384.4704389103097
+   },
+   "nearest_hospital": {
+    "osm_id": 403207487,
+    "name": "Regional Medical Center of San Jose",
+    "eta_s": 384.4704389103097
+   },
+   "hospital_etas": {
+    "Santa Clara Valley Medical Center": 487.061826177263,
+    "Regional Medical Center of San Jose": 384.4704389103097,
+    "O'Connor Hospital": 395.36644209043186
+   },
+   "hospital_rule": "fastest_capable",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  },
+  "R17": {
+   "incident_node": 65550290,
+   "requirements": {
+    "als": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    },
+    "transport": {
+     "need": 1,
+     "sources": [
+      "base"
+     ]
+    }
+   },
+   "units": [
+    {
+     "unit_id": "E3",
+     "capability": "als",
+     "eta_s": 266.6968785452448,
+     "station_id": 3
+    },
+    {
+     "unit_id": "M3",
+     "capability": "transport",
+     "eta_s": 266.6968785452448,
+     "station_id": 3
+    }
+   ],
+   "unmet": [],
+   "hospital": {
+    "osm_id": 403207487,
+    "name": "Regional Medical Center of San Jose",
+    "eta_s": 267.71010866354175
+   },
+   "nearest_hospital": {
+    "osm_id": 403207487,
+    "name": "Regional Medical Center of San Jose",
+    "eta_s": 267.71010866354175
+   },
+   "hospital_etas": {
+    "Santa Clara Valley Medical Center": 507.81009077553284,
+    "Regional Medical Center of San Jose": 267.71010866354175,
+    "O'Connor Hospital": 529.1546912251209
+   },
+   "hospital_rule": "bypass_used",
+   "recall": {
+    "hazards": [],
+    "prior_incident_types": []
+   }
+  }
+ },
+ "stop_reason": null,
+ "calls_made": 24
+}

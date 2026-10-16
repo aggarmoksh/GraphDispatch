@@ -175,6 +175,12 @@ Run: `python -m uvicorn graphdispatch.api:app --port 8000` (graph from env GRAPH
 - docker compose list fields append across -f files; use `!override` to replace ports.
 - The app code resolves seed/ and runs/ relative to the package, so the image installs it editable at /app (not into site-packages).
 
+## Evaluation (Phase 7)
+- eval/PROTOCOL.md is pre-registered: it was committed (with the scenarios, oracle, baseline B and the frozen prompt for C) before any result file existed. Do not change the prompt, scenarios, oracle or scoring after that commit; changes need a new protocol version and a new run.
+- eval/oracle.py is the independent oracle: standard library plus networkx, reads seed CSVs only, never imports graphdispatch (tests/test_oracle.py enforces it and checks the advisor-confirmed numbers).
+- Run: `GRAPH_NAME=sjfd_test python eval/run.py` (A, then B, then C; C makes 24 Bedrock calls, capped at 26). It stops after A if A differs from the oracle. `--skip-c` rehearses A and B with no Bedrock call; `--report-only` rebuilds eval/RESULTS.md from eval/results_raw.json.
+- Outputs: eval/results.csv, eval/results_raw.json, eval/RESULTS.md.
+
 ## QUERIES
 Every named query in graphdispatch/queries.cypher (kept in sync by tests/test_docs.py):
 - `idx_intersection`: Index Intersection.osm_id.

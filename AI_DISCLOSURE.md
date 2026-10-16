@@ -11,3 +11,4 @@ Built with Claude Code as the coding assistant; design decisions and verificatio
 - 2026-10-16 Phase 5: FastAPI API, static MapLibre page with a Cypher-showing Why drawer, server-side LLM caps, Playwright visual check.
 - 2026-10-16 Phase 5B: UI polish for the demo (skipped hospital on the map, plain labels, m:ss, map follows the decision).
 - 2026-10-16 Phase 6A: Dockerfile, docker compose, self-healing demo state, safe client-IP handling, IAM policy file, dry-run ship script, local container proof.
+- 2026-10-16 Phase 7: pre-registered evaluation (independent oracle, straight-line baseline, LLM-with-facts baseline) and results.

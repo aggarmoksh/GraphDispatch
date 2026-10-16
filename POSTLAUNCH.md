@@ -31,4 +31,7 @@
 - Persist the per-IP limiter (it is in memory in one worker and resets on restart); the daily cap file already survives restarts.
 - A real healthcheck dashboard and a CloudWatch cost alarm on Bedrock.
 - Run the app as a systemd-managed compose unit so it also starts after an instance reboot (restart: unless-stopped covers Docker restarts).
+- Evaluate C with a routing tool (a model that can call the graph) instead of coordinates-only text; this phase measured text-only facts.
+- A larger scenario set and repeated runs; 24 scenarios at temperature 0 are a demonstration, not a study.
+- Add scenarios where straight-line distance and road time give different hospitals (here the three hospitals were ordered the same way by both).
 
