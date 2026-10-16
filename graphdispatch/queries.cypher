@@ -192,3 +192,6 @@ MATCH (n) WHERE NOT (n:Incident OR n:Decision OR n:Caller OR n:Address OR n:Haza
 
 -- [seed_rel_counts] Relationship counts for relationships between seed labels only.
 MATCH (a)-[r]->(b) WHERE NOT (a:Incident OR a:Decision OR a:Caller OR a:Address OR a:Hazard OR b:Incident OR b:Decision OR b:Caller OR b:Address OR b:Hazard) RETURN type(r) AS t, count(r) AS c ORDER BY t;
+
+-- [incident_type_names] List incident type names (enum source for LLM tools).
+MATCH (t:IncidentType) RETURN t.name AS name ORDER BY name;

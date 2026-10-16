@@ -27,6 +27,8 @@ Graph Hacks (WeMakeDevs x FalkorDB), Tracks 01 and 02.
 - Stroke destination rule lives on the stroke DESTINATION_NEEDS edge (fallback, max_extra_s, max_total_s, source) and is applied by the pure function rules.stroke_bypass.
 - Timestamps are epoch seconds (int). Address id is the label lowercased with whitespace collapsed. Recall window is 30 days; hazards recalled when valid_from <= now <= valid_to.
 - Acceptance rule: no networkx under graphdispatch/ or scripts/ (tests/ and the phase0 probe are exempt).
+- Design rule: the LLM never writes Cypher. It may only output values from enums derived from the graph (IncidentType names, HazardKind names), via forced tool calls whose schemas are built at runtime from the graph. The caller text is data, not instructions.
+- LLM provider: Amazon Bedrock Converse API behind graphdispatch/llm.py (region us-east-1; model us.anthropic.claude-haiku-4-5-20251001-v1:0, chosen because Haiku 5.5 returned AccessDeniedException for this account). Hard cap LLM_CALL_CAP calls per process (default 20). Credentials live only in the gitignored .env or the AWS chain; never printed or committed.
 - Memory changes decisions: requirements for an incident are the type's REQUIRES plus ADDS_REQUIREMENT from active hazards at the same Address whose incident_type matches (query effective_requirements, one query). Each CHOSE edge records why the capability was required ('base' or 'hazard:<id>:<kind>'). Unmet capabilities are stored on the Decision (unmet, unmet_reasons); a shortage never crashes a call.
 - Hazard kinds are a closed vocabulary (HazardKind from seed/hazard_rules.csv); add_hazard refuses unknown kinds and lists the allowed ones.
 - Trauma levels come from the CA EMSA Designated Trauma Centers list (updated 2025-08-25) and are stored as OFFERS {level}; they are displayed, never used to choose a hospital.
@@ -163,6 +165,7 @@ Every named query in graphdispatch/queries.cypher (kept in sync by tests/test_do
 - `runtime_rel_counts`: Relationship counts for relationships touching runtime labels (reset dry run).
 - `seed_label_counts`: Node counts for non-runtime (seed) labels.
 - `seed_rel_counts`: Relationship counts for relationships between seed labels only.
+- `incident_type_names`: List incident type names (enum source for LLM tools).
 
 ## Anti-features
 - Voice input

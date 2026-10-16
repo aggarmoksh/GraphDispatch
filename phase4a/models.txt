@@ -1,0 +1,53 @@
+region: us-east-1
+
+== foundation models (byProvider=anthropic): modelId | name | inference types | lifecycle
+anthropic.claude-fable-5 | Claude Fable 5 | INFERENCE_PROFILE | ACTIVE
+anthropic.claude-fable-5-1 | Claude Fable 5.1 | INFERENCE_PROFILE | ACTIVE
+anthropic.claude-haiku-4-5-20251001-v1:0 | Claude Haiku 4.5 | INFERENCE_PROFILE | ACTIVE
+anthropic.claude-haiku-5-5 | Claude Haiku 5.5 | INFERENCE_PROFILE | ACTIVE
+anthropic.claude-opus-4-1-20250805-v1:0 | Claude Opus 4.1 | INFERENCE_PROFILE | LEGACY
+anthropic.claude-opus-4-5-20251101-v1:0 | Claude Opus 4.5 | INFERENCE_PROFILE | ACTIVE
+anthropic.claude-opus-4-6-v1 | Claude Opus 4.6 | INFERENCE_PROFILE | ACTIVE
+anthropic.claude-opus-4-7 | Claude Opus 4.7 | INFERENCE_PROFILE | ACTIVE
+anthropic.claude-opus-4-8 | Claude Opus 4.8 | INFERENCE_PROFILE | ACTIVE
+anthropic.claude-opus-5 | Claude Opus 5 | INFERENCE_PROFILE | ACTIVE
+anthropic.claude-opus-5-5 | Claude Opus 5.5 | INFERENCE_PROFILE | ACTIVE
+anthropic.claude-sonnet-4-5-20250929-v1:0 | Claude Sonnet 4.5 | INFERENCE_PROFILE | LEGACY
+anthropic.claude-sonnet-4-6 | Claude Sonnet 4.6 | INFERENCE_PROFILE | ACTIVE
+anthropic.claude-sonnet-5 | Claude Sonnet 5 | INFERENCE_PROFILE | ACTIVE
+anthropic.claude-sonnet-5-5 | Claude Sonnet 5.5 | INFERENCE_PROFILE | ACTIVE
+
+== inference profiles (anthropic): profileId | name | type | status
+global.anthropic.claude-fable-5 | Global Anthropic Claude Fable 5 | SYSTEM_DEFINED | ACTIVE
+global.anthropic.claude-fable-5-1 | Global Anthropic Claude Fable 5.1 | SYSTEM_DEFINED | ACTIVE
+global.anthropic.claude-haiku-4-5-20251001-v1:0 | Global Anthropic Claude Haiku 4.5 | SYSTEM_DEFINED | ACTIVE
+global.anthropic.claude-haiku-5-5 | Global Anthropic Claude Haiku 5.5 | SYSTEM_DEFINED | ACTIVE
+global.anthropic.claude-opus-4-5-20251101-v1:0 | GLOBAL Anthropic Claude Opus 4.5 | SYSTEM_DEFINED | ACTIVE
+global.anthropic.claude-opus-4-6-v1 | Global Anthropic Claude Opus 4.6 | SYSTEM_DEFINED | ACTIVE
+global.anthropic.claude-opus-4-7 | Global Anthropic Claude Opus 4.7 | SYSTEM_DEFINED | ACTIVE
+global.anthropic.claude-opus-4-8 | Global Anthropic Claude Opus 4.8 | SYSTEM_DEFINED | ACTIVE
+global.anthropic.claude-opus-5 | Global Anthropic Claude Opus 5 | SYSTEM_DEFINED | ACTIVE
+global.anthropic.claude-opus-5-5 | Global Anthropic Claude Opus 5.5 | SYSTEM_DEFINED | ACTIVE
+global.anthropic.claude-sonnet-4-20250514-v1:0 | Global Claude Sonnet 4 | SYSTEM_DEFINED | ACTIVE
+global.anthropic.claude-sonnet-4-5-20250929-v1:0 | Global Claude Sonnet 4.5 | SYSTEM_DEFINED | ACTIVE
+global.anthropic.claude-sonnet-4-6 | Global Anthropic Claude Sonnet 4.6 | SYSTEM_DEFINED | ACTIVE
+global.anthropic.claude-sonnet-5 | Global Anthropic Claude Sonnet 5 | SYSTEM_DEFINED | ACTIVE
+global.anthropic.claude-sonnet-5-5 | Global Anthropic Claude Sonnet 5.5 | SYSTEM_DEFINED | ACTIVE
+us.anthropic.claude-3-haiku-20240307-v1:0 | US Anthropic Claude 3 Haiku | SYSTEM_DEFINED | ACTIVE
+us.anthropic.claude-3-sonnet-20240229-v1:0 | US Anthropic Claude 3 Sonnet | SYSTEM_DEFINED | ACTIVE
+us.anthropic.claude-fable-5 | US Anthropic Claude Fable 5 | SYSTEM_DEFINED | ACTIVE
+us.anthropic.claude-fable-5-1 | US Anthropic Claude Fable 5.1 | SYSTEM_DEFINED | ACTIVE
+us.anthropic.claude-haiku-4-5-20251001-v1:0 | US Anthropic Claude Haiku 4.5 | SYSTEM_DEFINED | ACTIVE
+us.anthropic.claude-haiku-5-5 | US Anthropic Claude Haiku 5.5 | SYSTEM_DEFINED | ACTIVE
+us.anthropic.claude-opus-4-1-20250805-v1:0 | US Claude Opus 4.1 | SYSTEM_DEFINED | ACTIVE
+us.anthropic.claude-opus-4-5-20251101-v1:0 | US Anthropic Claude Opus 4.5 | SYSTEM_DEFINED | ACTIVE
+us.anthropic.claude-opus-4-6-v1 | US Anthropic Claude Opus 4.6 | SYSTEM_DEFINED | ACTIVE
+us.anthropic.claude-opus-4-7 | US Anthropic Claude Opus 4.7 | SYSTEM_DEFINED | ACTIVE
+us.anthropic.claude-opus-4-8 | US Anthropic Claude Opus 4.8 | SYSTEM_DEFINED | ACTIVE
+us.anthropic.claude-opus-5 | US Anthropic Claude Opus 5 | SYSTEM_DEFINED | ACTIVE
+us.anthropic.claude-opus-5-5 | US Anthropic Claude Opus 5.5 | SYSTEM_DEFINED | ACTIVE
+us.anthropic.claude-sonnet-4-20250514-v1:0 | US Claude Sonnet 4 | SYSTEM_DEFINED | ACTIVE
+us.anthropic.claude-sonnet-4-5-20250929-v1:0 | US Anthropic Claude Sonnet 4.5 | SYSTEM_DEFINED | ACTIVE
+us.anthropic.claude-sonnet-4-6 | US Anthropic Claude Sonnet 4.6 | SYSTEM_DEFINED | ACTIVE
+us.anthropic.claude-sonnet-5 | US Anthropic Claude Sonnet 5 | SYSTEM_DEFINED | ACTIVE
+us.anthropic.claude-sonnet-5-5 | US Anthropic Claude Sonnet 5.5 | SYSTEM_DEFINED | ACTIVE

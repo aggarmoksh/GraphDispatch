@@ -1,0 +1,7 @@
+id,expected_type,got_type,expected_hazards,got_hazards,confidence,address_label,input_tokens,output_tokens,latency_ms,pass,valid
+C1,cardiac_arrest,cardiac_arrest,,,0.95,200 Demo St,877,130,1803,True,True
+C2,structure_fire,structure_fire,oxygen_storage,oxygen_storage,0.95,,880,117,1301,True,True
+C3,stroke,stroke,,,0.95,,879,119,1239,True,True
+C4,burn,burn,,,0.95,,878,121,1386,True,True
+C5,hazmat_spill,hazmat_spill,,,0.95,,881,116,1169,True,True
+C6,major_trauma,major_trauma,,,0.95,,884,114,1254,True,True
