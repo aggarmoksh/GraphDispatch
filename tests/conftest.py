@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 os.environ["GRAPH_NAME"] = "sjfd_test"
+os.environ["LLM_CALL_CAP"] = "0"  # pytest must make zero Bedrock calls
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -21,6 +22,8 @@ def _fresh_graph():
     db.drop_graph()
     load.load()
     yield
+    from graphdispatch import llm
+    assert llm.call_count() == 0, "tests must not call Bedrock"
 
 
 @pytest.fixture(autouse=True)

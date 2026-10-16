@@ -1,12 +1,15 @@
 """Incident memory, decision provenance and the human-confirmed dispatch action. All synthetic IDs."""
+import csv
 import re
 import time
 import uuid
+from pathlib import Path
 
 from . import db
 from .recommend import fmt_reason, hospital_label, recommend, snap
 
 RECALL_WINDOW_S = 30 * 86400
+HAZARD_WINDOW_S = 30 * 86400
 
 
 class UnknownHazardKind(Exception):
@@ -17,21 +20,44 @@ class DispatchRefused(Exception):
     """A chosen unit is no longer available (or the decision has no chosen units); nothing was changed."""
 
 
+_SUFFIXES = None
+
+
+def _suffixes():
+    global _SUFFIXES
+    if _SUFFIXES is None:
+        path = Path(__file__).resolve().parent.parent / "seed" / "address_suffixes.csv"
+        with path.open(newline="", encoding="utf-8") as f:
+            _SUFFIXES = {r["word"]: r["abbr"] for r in csv.DictReader(f)}
+    return _SUFFIXES
+
+
 def address_id(label):
-    return re.sub(r"\s+", " ", label.strip()).lower()
+    """Lowercase, strip punctuation, collapse whitespace, abbreviate the last word via seed/address_suffixes.csv.
+
+    Device-derived labels ("device@lat,lon") are kept as typed (lowercased).
+    """
+    text = label.strip().lower()
+    if text.startswith("device@"):
+        return text
+    words = re.sub(r"[^a-z0-9 ]+", " ", text).split()
+    if words:
+        words[-1] = _suffixes().get(words[-1], words[-1])
+    return " ".join(words)
 
 
 def _new_id(prefix):
     return f"{prefix}-{uuid.uuid4().hex[:10]}"
 
 
-def create_incident(caller_id, address_label, lat, lon, type, now=None):
+def create_incident(caller_id, address_label, lat, lon, type, now=None, call_text=None, intake_model=None):
     now = int(time.time()) if now is None else int(now)
     node, _ = snap(lat, lon)  # raises OutOfArea before anything is written
     incident_id = _new_id("inc")
     db.write("create_incident", {"caller_id": caller_id, "address_id": address_id(address_label), "label": address_label,
                                  "lat": float(lat), "lon": float(lon), "type": type, "node": node,
-                                 "incident_id": incident_id, "now": now})
+                                 "incident_id": incident_id, "now": now,
+                                 "call_text": call_text, "intake_model": intake_model, "created_ns": time.time_ns()})
     return incident_id
 
 
@@ -40,19 +66,37 @@ def recall(incident_id, now=None):
     now = int(time.time()) if now is None else int(now)
     inc = [dict(incident_id=r[0], type=r[1], created_at=r[2], status=r[3])
            for r in db.read("recall_incidents", {"incident_id": incident_id, "since": now - RECALL_WINDOW_S})]
-    haz = [dict(hazard_id=r[0], kind=r[1], note=r[2], valid_from=r[3], valid_to=r[4], crew_note=r[5])
+    haz = [dict(hazard_id=r[0], kind=r[1], note=r[2], valid_from=r[3], valid_to=r[4], crew_note=r[5], reported_by=r[6])
            for r in db.read("recall_hazards", {"incident_id": incident_id, "now": now})]
-    return {"incidents": inc, "hazards": haz}
+    return {"incidents": inc, "hazards": haz, "hazard_groups": group_hazards(haz)}
 
 
-def add_hazard(address_label, kind, note, valid_from, valid_to, incident_id=None, now=None):
+def group_hazards(hazards):
+    """Group hazards by kind: [{kind, count, notes, crew_note, hazard_ids}]."""
+    groups = {}
+    for h in hazards:
+        g = groups.setdefault(h["kind"], {"kind": h["kind"], "count": 0, "notes": [], "crew_note": h.get("crew_note"),
+                                          "hazard_ids": []})
+        g["count"] += 1
+        g["notes"].append(h.get("note"))
+        g["hazard_ids"].append(h["hazard_id"])
+    return list(groups.values())
+
+
+def format_group(g):
+    head = f"{g['kind']} x{g['count']}" if g["count"] > 1 else g["kind"]
+    return f"{head}: " + "; ".join(n for n in g["notes"] if n)
+
+
+def add_hazard(address_label, kind, note, valid_from, valid_to, incident_id=None, now=None, reported_by=None):
     now = int(time.time()) if now is None else int(now)
     allowed = [r[0] for r in db.read("hazard_kinds")]
     if kind not in allowed:
         raise UnknownHazardKind(f"unknown hazard kind {kind!r}; allowed kinds: {', '.join(allowed)}")
     hazard_id = _new_id("haz")
     db.write("add_hazard", {"address_id": address_id(address_label), "label": address_label, "hazard_id": hazard_id,
-                            "kind": kind, "note": note, "valid_from": int(valid_from), "valid_to": int(valid_to), "now": now})
+                            "kind": kind, "note": note, "valid_from": int(valid_from), "valid_to": int(valid_to), "now": now,
+                            "reported_by": reported_by, "created_ns": time.time_ns()})
     if incident_id:
         db.write("hazard_reported_in", {"hazard_id": hazard_id, "incident_id": incident_id})
     return hazard_id
@@ -104,7 +148,7 @@ def why(decision_id):
         "destination": (keep(dest, "osm_id") or [None])[0],
         "skipped": sorted(keep(skipped, "osm_id"), key=lambda x: x["eta_s"]),
         "route": sorted(keep(route, "leg"), key=lambda x: (x["leg"], x["seq"])),
-        "recalled_hazards": keep(rhaz, "hazard_id"),
+        "recalled_hazards": sorted(keep(rhaz, "hazard_id"), key=lambda h: (h.get("created_ns") or 0, h["hazard_id"])),
         "recalled_incidents": keep(rinc, "incident_id"),
         "unmet": [{"capability": c, "reason": r} for c, r in zip(unmet or [], unmet_reasons or [])],
     }
@@ -130,6 +174,11 @@ def run_call(caller_id, address_label, lat, lon, type, now=None):
     """Create incident, recall memory, recommend, record the decision. Does NOT dispatch."""
     now = int(time.time()) if now is None else int(now)
     incident_id = create_incident(caller_id, address_label, lat, lon, type, now)
+    return decide(incident_id, lat, lon, type, now)
+
+
+def decide(incident_id, lat, lon, type, now):
+    """Recall memory, recommend (with hazard-added requirements), record the decision. Does NOT dispatch."""
     recalled = recall(incident_id, now)
     rec = recommend(lat, lon, type, incident_id=incident_id, now=now)
     decision_id = record_decision(incident_id, rec, recalled, now)
@@ -155,10 +204,10 @@ def explain_why(w):
     for r in w["route"]:
         legs[r["leg"]] = legs.get(r["leg"], 0) + 1
     lines.append("Route legs (intersections): " + ", ".join(f"{k}={v}" for k, v in sorted(legs.items())))
-    for h in w["recalled_hazards"]:
-        lines.append(f"Recalled hazard: {h['kind']} - {h['note']}")
-        if h.get("crew_note"):
-            lines.append(f"  Crew note: {h['crew_note']}")
+    for g in group_hazards(w["recalled_hazards"]):
+        lines.append(f"Recalled hazard: {format_group(g)}")
+        if g.get("crew_note"):
+            lines.append(f"  Crew note: {g['crew_note']}")
     for i in w["recalled_incidents"]:
         lines.append(f"Recalled earlier incident: {i['incident_id']} ({i['type']})")
     return "\n".join(lines)

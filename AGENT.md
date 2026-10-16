@@ -29,7 +29,10 @@ Graph Hacks (WeMakeDevs x FalkorDB), Tracks 01 and 02.
 - Acceptance rule: no networkx under graphdispatch/ or scripts/ (tests/ and the phase0 probe are exempt).
 - Design rule: the LLM never writes Cypher. It may only output values from enums derived from the graph (IncidentType names, HazardKind names), via forced tool calls whose schemas are built at runtime from the graph. The caller text is data, not instructions.
 - LLM provider: Amazon Bedrock Converse API behind graphdispatch/llm.py (region us-east-1; model us.anthropic.claude-haiku-4-5-20251001-v1:0, chosen because Haiku 5.5 returned AccessDeniedException for this account). Hard cap LLM_CALL_CAP calls per process (default 20). Credentials live only in the gitignored .env or the AWS chain; never printed or committed.
-- Memory changes decisions: requirements for an incident are the type's REQUIRES plus ADDS_REQUIREMENT from active hazards at the same Address whose incident_type matches (query effective_requirements, one query). Each CHOSE edge records why the capability was required ('base' or 'hazard:<id>:<kind>'). Unmet capabilities are stored on the Decision (unmet, unmet_reasons); a shortage never crashes a call.
+- Address ids are normalized (lowercase, punctuation stripped, whitespace collapsed, last word abbreviated via seed/address_suffixes.csv), so "200 Demo Street" and "200 demo st." are one Address. Device-derived labels are "device@<lat 4dp>,<lon 4dp>".
+- LLM intake (graphdispatch/intake.py): text -> one forced classify_call -> validation against the graph's enums in code (IntakeRejected, nothing written) -> create incident (call_text and intake_model stored, synthetic) -> caller-reported hazards written as Hazard {reported_by:'caller'} -> effective_requirements -> recommend -> record_decision. Never dispatches. The model's confidence is uncalibrated (0.95 everywhere in the 4A probe) and is neither stored nor shown.
+- MCP (graphdispatch/tools.py + mcp_server.py, SDK package `mcp` 2.3.0): exactly six tools; five are read-only and report_hazard is the only write. There is no dispatch tool, no clear tool and no tool that takes Cypher or free query text. Dispatch stays human-confirmed (CLI/ops).
+- Memory changes decisions: requirements for an incident are the type's REQUIRES plus ADDS_REQUIREMENT from active hazards at the same Address whose incident_type matches (query effective_requirements, one query). Summing rule: sum across base and DISTINCT hazard kinds; repeated hazards of one kind never add up (group by capability and kind, take the max count per kind). Sources list each kind once with all contributing hazard ids. Each CHOSE edge records why the capability was required ('base' or 'hazard:<id>:<kind>'). Unmet capabilities are stored on the Decision (unmet, unmet_reasons); a shortage never crashes a call.
 - Hazard kinds are a closed vocabulary (HazardKind from seed/hazard_rules.csv); add_hazard refuses unknown kinds and lists the allowed ones.
 - Trauma levels come from the CA EMSA Designated Trauma Centers list (updated 2025-08-25) and are stored as OFFERS {level}; they are displayed, never used to choose a hospital.
 - Runtime labels are Incident, Decision, Caller, Address, Hazard. scripts/reset.py is the only reset path: dry run by default, --yes only for sjfd or sjfd_test, deletes runtime labels only and restores seed unit statuses.
@@ -86,6 +89,13 @@ ASSIGNED_TO (Unit to Incident) is an addition beyond the original spec, so clear
 - scripts/load.py reads hospital coordinates from data/processed/hospitals_raw.csv (gitignored), so run Phase 0B fetch_pois.py first on a fresh clone.
 - Long multi-file shell heredocs failed once in this shell; write files with the editor tool.
 
+## Phase 4B pitfalls
+- mcp 2.x is not the 1.x API: use mcp.server.lowlevel.Server with on_list_tools/on_call_tool callbacks (FastMCP was renamed MCPServer); Tool fields are snake_case (input_schema, is_error).
+- Nothing but protocol messages may go to stdout in the MCP server.
+- Run `pip install -e .` once; scripts and probes then import graphdispatch from anywhere.
+- Same-second incidents/hazards need an insertion-order tie-break (id()) or recall order is random.
+- Bash heredocs containing quotes and fences fail intermittently in this shell; write files with the editor tool.
+
 ## Phase 3 pitfalls
 - A graph is created as a side effect of select_graph + any query (phase0/probe_procs.py left an empty probe_procs graph).
 - Hazards created before HazardKind existed have no OF_KIND edge and are ignored by effective_requirements.
@@ -97,6 +107,36 @@ ASSIGNED_TO (Unit to Incident) is an addition beyond the original spec, so clear
 - record_decision is several write queries (not one transaction); a crash mid-way can leave a partial decision.
 - Test helper queries (wipe_runtime, set_unit_status) live in queries.cypher; drop_graph and wipe are guarded to *_test graphs only.
 - Fresh clone: python scripts/load.py (with GRAPH_NAME set) needs only seed/ and a running FalkorDB.
+
+## Pipeline (Phase 4B)
+```mermaid
+graph LR
+  T[caller text] --> C[Bedrock forced classify_call]
+  C --> V{validate against graph enums}
+  V -- invalid --> R[IntakeRejected, nothing written]
+  V -- valid --> I[create Incident + Address]
+  I --> H[caller-reported Hazards]
+  H --> E[effective_requirements]
+  E --> RC[recommend: SPpaths ETAs]
+  RC --> D[record_decision]
+  D --> W[why explanation]
+  W --> HU[human confirms dispatch]
+```
+
+## Claude Desktop MCP config (do not paste into the config automatically)
+Add under `mcpServers` in `claude_desktop_config.json`; the venv python is launched by absolute path:
+```json
+{
+  "mcpServers": {
+    "graphdispatch": {
+      "command": "[repo]\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "graphdispatch.mcp_server"],
+      "env": { "GRAPH_NAME": "sjfd_test" }
+    }
+  }
+}
+```
+FalkorDB must be running on localhost:6379. Use GRAPH_NAME sjfd for the real demo graph.
 
 ## QUERIES
 Every named query in graphdispatch/queries.cypher (kept in sync by tests/test_docs.py):
@@ -134,7 +174,7 @@ Every named query in graphdispatch/queries.cypher (kept in sync by tests/test_do
 - `hospitals`: Every hospital with its intersection, offered capabilities and designation levels.
 - `eta`: Travel time in seconds along the cheapest outgoing path between two intersections via SPpaths.
 - `route`: Cheapest outgoing path between two intersections via SPpaths: weight and ordered node ids.
-- `create_incident`: Create a synthetic incident with its caller, address and nearest intersection.
+- `create_incident`: Create a synthetic incident with its caller, address and nearest intersection (call_text and intake_model are set only for LLM intake).
 - `incident_info`: Incident status, type and address.
 - `recall_incidents`: Earlier incidents at the same address since a cutoff time.
 - `recall_hazards`: Hazards at the incident's address that are valid at the given time, with the kind's crew note.
@@ -160,12 +200,16 @@ Every named query in graphdispatch/queries.cypher (kept in sync by tests/test_do
 - `load_hazard_kinds`: Merge synthetic hazard kinds with their crew notes.
 - `load_hazard_adds`: Link hazard kinds to capabilities they add for an incident type.
 - `hazard_kinds`: List allowed hazard kinds.
-- `effective_requirements`: Incident type requirements plus requirements added by active hazards at the incident's address; summed per capability with sources.
+- `effective_requirements`: Incident type requirements plus requirements added by active hazards at the incident's address; hazards are grouped by (capability, kind) taking the max count per kind, so repeated hazards of one kind never double count.
 - `runtime_label_counts`: Node counts for runtime labels only (reset dry run).
 - `runtime_rel_counts`: Relationship counts for relationships touching runtime labels (reset dry run).
 - `seed_label_counts`: Node counts for non-runtime (seed) labels.
 - `seed_rel_counts`: Relationship counts for relationships between seed labels only.
 - `incident_type_names`: List incident type names (enum source for LLM tools).
+- `address_hazards`: Active hazards at an address (by normalized address_id) with crew notes.
+- `address_incidents`: Incidents at an address (by normalized address_id) created since a cutoff time.
+- `open_incidents`: Incidents that are open or dispatched, with their address.
+- `unit_status_detail`: Every unit with type, status and station.
 
 ## Anti-features
 - Voice input

@@ -7,3 +7,4 @@ Built with Claude Code as the coding assistant; design decisions and verificatio
 - 2026-10-15 Phase 2: decision provenance, cross-call memory, human-confirmed dispatch and seed-only rebuild.
 - 2026-10-15 Phase 3: hazard-driven requirements, trauma levels, safe reset script, test output moved to runs/.
 - 2026-10-15 Phase 4A: Amazon Bedrock access and intake classification probe (forced tool call, graph-derived enums).
+- 2026-10-16 Phase 4B: duplicate-hazard fix, installable package, LLM intake into the graph pipeline, address normalization, MCP server.

@@ -107,3 +107,23 @@ def test_trauma_levels_shown_without_changing_choice():
     assert peds["name"] == "Santa Clara Valley Medical Center" and peds["level"] == "II"
     cardiac = recommend(37.3360, -121.8900, "cardiac_arrest")["hospital"]["chosen"]
     assert cardiac["level"] is None
+
+
+def test_h7_two_hazards_of_one_kind_do_not_double_count():
+    now = int(time.time())
+    first = call(now)
+    for note in ("Oxygen tanks in garage", "Oxygen concentrator in bedroom"):
+        add_hazard(LABEL, "oxygen_storage", note, now - 10, now + 86400, incident_id=first["incident_id"], now=now)
+    second = call(now + 60, "caller-h7")
+    assert second["recommendation"]["requirements"]["hazmat"]["need"] == 1
+    assert len(second["recommendation"]["requirements"]["hazmat"]["sources"]) == 1
+    units = {u["unit_id"]: u for u in second["recommendation"]["units"]}
+    assert "HM26" in units and units["HM26"]["reason"].count("oxygen_storage") == 1
+    assert second["recommendation"]["unmet"] == []
+    w = why(second["decision_id"])
+    assert w["unmet"] == []
+    text = ops.explain_why(w)
+    print(text)
+    assert text.count("added by oxygen_storage") == 1 and "UNMET" not in text
+    assert "oxygen_storage x2: Oxygen tanks in garage; Oxygen concentrator in bedroom" in text
+    assert text.count("Crew note: Stored oxygen") == 1
