@@ -28,6 +28,7 @@
           <button type="button" class="preset" data-preset="stroke">Stroke, west side</button>
           <button type="button" class="preset" data-preset="burn">Burn, east side</button>
           <button type="button" class="preset" data-preset="oxygen">Garage fire with oxygen, then a collapse next door</button>
+          <button type="button" class="preset" data-preset="closure">Road closed on the stroke route</button>
         </div>
         <p id="loc" class="loc">Pick a preset or click the map to place a caller.</p>
         <label class="switch"><input type="checkbox" id="graph-only"> Graph only (no AI call)</label>
@@ -43,6 +44,13 @@
         </div>
         <button type="button" id="take" class="primary">Take call</button>
         <p id="status" class="status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="closures" aria-labelledby="clo-h">
+        <h2 id="clo-h">Closed roads</h2>
+        <button type="button" id="close-toggle" class="plain" aria-pressed="false">Close a road</button>
+        <p id="clo-hint" class="sub">Press, then click a road on the map. Closures are synthetic, limited to three at a time, and reopen by themselves.</p>
+        <ul id="clo-list" class="clo-list"></ul>
       </section>
 
       <section id="panel" class="panel" aria-labelledby="dec-h" tabindex="-1">
@@ -64,6 +72,7 @@
           <li><span class="key haz"></span>Hazard</li>
           <li><span class="key line fire"></span>Unit route</li>
           <li><span class="key line med"></span>Hospital route</li>
+          <li><span class="key line closed"></span>Closed road</li>
         </ul>
       </div>
     </div>

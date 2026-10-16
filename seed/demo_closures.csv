@@ -1,0 +1,3 @@
+preset,scenario,incident_type,lat,lon,src_osm,dst_osm,name,reason,role
+road_closed_on_stroke_route,S1,stroke,37.33,-121.93,245812727,33783786,Bayshore Freeway,Synthetic closure for the demo,hospital_leg_detour
+road_closed_on_stroke_route,S1,stroke,37.33,-121.93,65498681,3478495391,West Taylor Street,Synthetic closure for the demo,unit_change

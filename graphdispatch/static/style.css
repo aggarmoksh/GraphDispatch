@@ -132,6 +132,7 @@ table.units td:nth-child(3) { white-space: nowrap; }
 .key.line { height: 4px; width: 18px; }
 .key.line.fire { background: var(--fire); }
 .key.line.med { background: var(--medical); }
+.key.line.closed { background: repeating-linear-gradient(90deg, var(--ink) 0 4px, transparent 4px 7px); }
 
 /* why drawer */
 .drawer { background: var(--panel); border-top: 1px solid var(--line); }
@@ -170,3 +171,14 @@ pre.cypher .par { color: #8FC1FF; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+/* road closures */
+.closures { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+#close-toggle[aria-pressed="true"] { background: var(--ink); color: #fff; }
+.clo-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.clo-list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-left: 4px solid var(--ink); padding-left: 8px; font-size: 14px; }
+.clo-list .sub { display: block; }
+.clo-list button { background: var(--panel); border: 1px solid var(--ink); padding: 3px 10px; font-weight: 600; white-space: nowrap; }
+.mk.closedlabel { background: #fff; color: var(--ink); border: 1.5px solid var(--ink); border-radius: var(--radius); padding: 0 5px; font-family: var(--ui); font-size: 11px; font-weight: 700; pointer-events: none; transform-origin: center; }
+.map-closing .maplibregl-canvas { cursor: crosshair; }
+.sect .sub.closure-sub { margin: 0 0 4px; }

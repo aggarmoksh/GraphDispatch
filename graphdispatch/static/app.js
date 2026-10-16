@@ -1,10 +1,10 @@
 import { api } from "/api.js";
 import { initMap, setMeta, setCaller, setIncident, setHazards, drawRoutes, fitTo, ready, markStations, markHospitals,
-  stationPoint, hospitalPoint } from "/map.js";
-import { renderDecision, renderWhy, setLabels, typeLabel, skipText } from "/panel.js";
+  stationPoint, hospitalPoint, setClosures, setClosing } from "/map.js";
+import { renderDecision, renderWhy, setLabels, typeLabel, skipText, mmss } from "/panel.js";
 
 const $ = (id) => document.getElementById(id);
-const state = { meta: null, loc: null, preset: null, history: [], current: -1, busy: false };
+const state = { meta: null, loc: null, preset: null, history: [], current: -1, busy: false, closeMode: false, closures: [], closureQueries: null, clockOffset: 0 };
 
 const PRESETS = {
   stroke: { lat: 37.3300, lon: -121.9300, type: "stroke", addr: "",
@@ -14,6 +14,8 @@ const PRESETS = {
   oxygen: { lat: 37.3360, lon: -121.8900, type: "structure_fire", addr: "200 Demo Street",
     text: "Smoke coming out of the garage at 200 Demo Street, my neighbor uses home oxygen, please hurry",
     text2: "My neighbor at 200 Demo St just collapsed and isn't breathing" },
+  closure: { lat: 37.3300, lon: -121.9300, type: "stroke", addr: "",
+    text: "My wife's face is drooping on one side and she can't lift her right arm, it started ten minutes ago" },
 };
 
 function setStatus(msg, kind = "") {
@@ -64,7 +66,9 @@ function pickPreset(key) {
   fitTo([[p.lon, p.lat]]);
   setStatus(key === "oxygen"
     ? "This preset makes two calls at the same address. Press Take call to run both."
-    : "Preset loaded. Press Take call.");
+    : key === "closure"
+      ? "This preset closes two synthetic roads on the stroke route, then takes the call. Press Take call."
+      : "Preset loaded. Press Take call.");
 }
 
 // ---------------------------------------------------------------- decisions
@@ -75,7 +79,13 @@ const ctx = {
     document.querySelectorAll(".qline").forEach((b) => b.removeAttribute("aria-current"));
     btn.setAttribute("aria-current", "true");
     openDrawer(true);
-    renderWhy($("why-body"), cur.payload, name);
+    let payload = cur.payload;
+    if ((name === "close_road" || name === "reopen_road") && state.closureQueries) {
+      // closing happens in its own request: show the real recorded run if there is one, else the query text
+      const ran = (state.lastCloseQueries || []).filter((q) => q.name === name);
+      payload = { queries: ran.length ? ran : [{ name, cypher: state.closureQueries[name], ms: 0, params: {} }] };
+    }
+    renderWhy($("why-body"), payload, name);
     $("why-hint").textContent = `Showing the query behind: ${btn.textContent.slice(0, 80)}`;
   },
   async onDispatch(p) {
@@ -133,6 +143,10 @@ function followOnMap(payload) {
   const pts = [[payload.incident.lon, payload.incident.lat], ...stations.map(stationPoint),
     chosen != null ? hospitalPoint(chosen) : null, sk ? hospitalPoint(sk.osm_id) : null,
     ...payload.routes.flatMap((r) => r.coords)];
+  (payload.rerouted || []).forEach((x) => {
+    const c = state.closures.find((k) => k.closure_id === x.closure_id);
+    if (c) pts.push(...c.geometry);
+  });
   fitTo(pts);
 }
 
@@ -183,6 +197,83 @@ async function guarded(fn) {
   }
 }
 
+// ---------------------------------------------------------------- road closures
+function renderClosures() {
+  const ul = $("clo-list");
+  ul.replaceChildren();
+  const now = Date.now() / 1000 + state.clockOffset;
+  state.closures.forEach((c) => {
+    const li = document.createElement("li");
+    const t = document.createElement("span");
+    t.textContent = `${c.name || "Unnamed road"}`;
+    const sub = document.createElement("span");
+    sub.className = "sub";
+    sub.textContent = `${c.reason}; reopens by itself in ${mmss(Math.max(0, c.expires_at - now))}`;
+    t.appendChild(sub);
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = "Reopen";
+    b.setAttribute("aria-label", `Reopen ${c.name || "unnamed road"}`);
+    b.addEventListener("click", () => guarded(async () => {
+      await api(`/api/closures/${c.closure_id}`, { method: "DELETE" });
+      await refreshClosures();
+      setStatus("Road reopened. Decisions already taken keep what they recorded.", "ok");
+    }));
+    li.append(t, b);
+    ul.appendChild(li);
+  });
+  if (!state.closures.length) {
+    const li = document.createElement("li");
+    li.className = "sub";
+    li.textContent = "No roads are closed.";
+    li.style.borderLeft = "0";
+    ul.appendChild(li);
+  }
+}
+
+async function refreshClosures() {
+  try {
+    const r = await api("/api/closures");
+    state.closures = r.closures;
+    state.closureQueries = r.closure_queries;
+    state.clockOffset = r.now - Date.now() / 1000;
+    await setClosures(r.closures);
+    renderClosures();
+  } catch { /* closures are an extra; the rest of the page still works */ }
+}
+
+function setCloseMode(on) {
+  state.closeMode = on;
+  $("close-toggle").setAttribute("aria-pressed", String(on));
+  setClosing(on);
+  if (on) setStatus("Click a road on the map to close it.");
+}
+
+async function closeAt(lat, lon) {
+  setCloseMode(false);
+  await guarded(async () => {
+    const r = await api("/api/closures", { method: "POST", body: { lat, lon, reason: "Synthetic closure" } });
+    state.lastCloseQueries = r.queries;
+    await refreshClosures();
+    setStatus(`Closed ${r.closure.name || "an unnamed road"}. Take a call to see the routes go around it.`, "ok");
+  });
+}
+
+async function closeDemoRoads() {
+  await refreshClosures();
+  const active = new Set(state.closures.map((k) => [k.src_osm, k.dst_osm].sort().join("-")));
+  for (const c of state.meta.demo_closures) {
+    if (active.has([c.src_osm, c.dst_osm].sort().join("-"))) continue;          // already closed: no request, no error
+    try {
+      const r = await api("/api/closures", { method: "POST", body: { src_osm: c.src_osm, dst_osm: c.dst_osm, reason: c.reason } });
+      state.lastCloseQueries = r.queries;
+    } catch (e) {
+      if (!(e.status === 409 && /already closed|no open road/i.test(e.message))) throw e;   // already closed is fine
+    }
+  }
+  await refreshClosures();
+}
+
 async function graphCall(type, address) {
   return api("/api/recommend", { method: "POST", body: { lat: state.loc.lat, lon: state.loc.lon, incident_type: type, address } });
 }
@@ -192,6 +283,11 @@ async function takeCall() {
   const graphOnly = $("graph-only").checked;
   await guarded(async () => {
     setStatus(graphOnly ? "Walking the graph…" : "Reading the call, then walking the graph…");
+    if (state.preset === "closure") {
+      setStatus("Closing two synthetic roads on the stroke route…");
+      await closeDemoRoads();
+      setStatus(graphOnly ? "Walking the graph around the closures…" : "Reading the call, then walking the graph around the closures…");
+    }
     if (state.preset === "oxygen") {
       const p = PRESETS.oxygen;
       if (graphOnly) {
@@ -220,12 +316,17 @@ async function takeCall() {
     }
     await present(payload, `Call ${state.history.length + 1}: ${typeLabel(payload.incident.type)}`);
     setStatus(`Recommendation ready in ${payload.total_ms} ms. Nothing is dispatched until you confirm.`, "ok");
+    if (state.preset === "closure") await refreshClosures();
   });
 }
 
 // ---------------------------------------------------------------- start
 async function start() {
-  initMap((lat, lon) => { if (!state.busy) { clearPreset(); setLoc(lat, lon); setStatus(""); } });
+  initMap((lat, lon) => {
+    if (state.busy) return;
+    if (state.closeMode) { closeAt(lat, lon); return; }
+    clearPreset(); setLoc(lat, lon); setStatus("");
+  });
   try {
     const meta = await api("/api/meta");
     state.meta = meta;
@@ -243,11 +344,14 @@ async function start() {
     await ready;
     setMeta(meta);
     await refreshHazards();
+    await refreshClosures();
   } catch (e) {
     setStatus(e.message || "Could not load the graph. Start FalkorDB and reload.", "error");
   }
   document.querySelectorAll(".preset").forEach((b) => b.addEventListener("click", () => pickPreset(b.dataset.preset)));
   $("take").addEventListener("click", takeCall);
+  $("close-toggle").addEventListener("click", () => setCloseMode(!state.closeMode));
+  setInterval(renderClosures, 5000);                       // keep the "reopens in" countdown fresh
   $("graph-only").addEventListener("change", applyMode);
   $("text").addEventListener("input", clearPreset);
   $("why-toggle").addEventListener("click", () => openDrawer($("why").dataset.open !== "true"));

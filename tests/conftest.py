@@ -30,6 +30,8 @@ def _fresh_graph():
 def _reset_runtime():
     """Each test starts with no runtime nodes and seed unit statuses."""
     assert db.graph_name() == "sjfd_test"
+    from graphdispatch import closures
+    closures.reopen_all()                      # no road stays closed between tests
     db.write("wipe_runtime")
     load.reset_units()
     yield

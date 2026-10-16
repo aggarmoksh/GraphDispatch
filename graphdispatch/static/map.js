@@ -52,6 +52,10 @@ export function initMap(onClick) {
       map.addLayer({ id: "route-line-" + id, type: "line", source: "route-" + id,
         layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": color, "line-width": 4 } });
     }
+    map.addSource("closures", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addLayer({ id: "closure-casing", type: "line", source: "closures", layout: { "line-cap": "butt" }, paint: { "line-color": "#FFFFFF", "line-width": 9 } });
+    map.addLayer({ id: "closure-line", type: "line", source: "closures", layout: { "line-cap": "butt" },
+      paint: { "line-color": "#1D2733", "line-width": 5, "line-dasharray": [1.2, 1.2] } });
     readyResolve();
   });
   map.on("error", (e) => { console.warn("map:", e && e.error && e.error.message); });
@@ -146,6 +150,24 @@ export function setHazards(list) {
     return new maplibregl.Marker({ element: b, offset: [20, -20] }).setLngLat([h.lon, h.lat]).addTo(map);  // beside the pin, not under it
   });
 }
+
+/** Closed road segments: dashed dark lines with a small "closed" label at the middle. */
+const closedLabels = [];
+export async function setClosures(list) {
+  await ready;
+  map.getSource("closures").setData({ type: "FeatureCollection", features: list.map((c) => ({
+    type: "Feature", properties: { id: c.closure_id }, geometry: { type: "LineString", coordinates: c.geometry } })) });
+  closedLabels.splice(0).forEach((m) => m.remove());
+  list.forEach((c) => {
+    const [a, b] = c.geometry;
+    const d = el("div", "mk closedlabel", "closed");
+    d.setAttribute("role", "img");
+    d.setAttribute("aria-label", `Closed road: ${c.name || "unnamed road"}`);
+    closedLabels.push(new maplibregl.Marker({ element: d, offset: [0, -14] }).setLngLat([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]).addTo(map));
+  });
+}
+
+export const setClosing = (on) => map.getContainer().classList.toggle("map-closing", on);
 
 export async function drawRoutes(routes) {
   await ready;

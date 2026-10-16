@@ -21,7 +21,7 @@ os.environ["GRAPH_NAME"] = "sjfd_test"
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from graphdispatch import db, ops  # noqa: E402
+from graphdispatch import closures, db, ops  # noqa: E402
 import load  # noqa: E402
 
 RUNS = 20
@@ -32,6 +32,8 @@ SKIP_TIMING = {
     "dispatch": "state-dependent (succeeds once, then refuses)",
     "clear": "state-dependent (frees units once)",
     "expire_incidents": "state-dependent (expires only stale incidents)",
+    "close_road": "state-changing (closes a road; closing the same road twice is refused)",
+    "reopen_road": "state-changing (reopens a closure once)",
 }
 
 
@@ -85,7 +87,9 @@ def setup():
     stroke = ops.run_call("caller-timing", "10 Query Timing St", 37.33, -121.93, "stroke", now=now)
     fire = ops.run_call("caller-timing2", "10 Query Timing St", 37.336, -121.89, "structure_fire", now=now)
     cands = db.read("unit_candidates", {"caps": ["als"]})
-    return {"now": now, "stroke": stroke, "fire": fire, "src": cands[0][3], "dst": stroke["recommendation"]["incident"]["node"],
+    c0_src, c0_dst = db.read("nearest_road_segment", {"lat": 37.30, "lon": -121.84})[0][:2]
+    c_id = closures.close_road(c0_src, c0_dst, "timing closure", now=now)      # one closure to time the provenance queries against
+    return {"closure_id": c_id, "now": now, "stroke": stroke, "fire": fire, "src": cands[0][3], "dst": stroke["recommendation"]["incident"]["node"],
             "route_nodes": [n for n in db.read("route", {"src": cands[0][3], "dst": stroke["recommendation"]["incident"]["node"]})[0][1]][:20]}
 
 
@@ -105,7 +109,11 @@ def params_for(name, i, c):
                        "note": "t", "valid_from": now - 10, "valid_to": now + 86400, "now": now, "created_ns": time.time_ns(), "reported_by": None,
                        "lat": None, "lon": None},
         "hazard_reported_in": {"hazard_id": f"haz-time-{max(i - 1, 0)}", "incident_id": inc},
-        "decision_create": {"decision_id": f"dec-time-{i}", "incident_id": inc, "ts": now, "rule_applied": "timing", "unmet": [], "unmet_reasons": []},
+        "decision_create": {"decision_id": f"dec-time-{i}", "incident_id": inc, "ts": now, "rule_applied": "timing", "unmet": [], "unmet_reasons": [],
+                            "changes": "{}", "no_route": []},
+        "nearest_road_segment": {"lat": 37.33, "lon": -121.93}, "eta_all": {"src": c["src"], "dst": c["dst"]}, "route_all": {"src": c["src"], "dst": c["dst"]},
+        "expired_closures": {"now": now},
+        "decision_rerouted": {"decision_id": dec, "rows": [{"leg": "hospital", "closure_id": c["closure_id"], "extra_s": 12.5}]},
         "decision_considered": {"decision_id": dec, "rows": [{"unit_id": "E7", "capability": "als", "eta_s": 1.0, "rank": 1}]},
         "decision_chose": {"decision_id": dec, "rows": [{"unit_id": "E7", "capability": "als", "eta_s": 1.0, "reason": "base"}]},
         "decision_destination": {"decision_id": dec, "osm_id": 403207487, "eta_s": 551.0, "level": None},
@@ -186,6 +194,7 @@ def main():
         md += [f"### {title}", "", "```text", text.rstrip(), "```", ""]
     (ROOT / "QUERIES.md").write_text("\n".join(md), encoding="utf-8")
 
+    closures.reopen_all()
     db.write("wipe_runtime")
     load.reset_units()
     slow = sorted(((v, k) for k, v in timing.items() if not isinstance(v, str)), reverse=True)[:3]

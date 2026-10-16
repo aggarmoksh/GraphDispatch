@@ -94,7 +94,7 @@ graph LR
 
 ## Cypher queries
 
-The product depends on 75 named, parameterized queries in [graphdispatch/queries.cypher](graphdispatch/queries.cypher), all documented with their Cypher, callers, read or write, and timings in **[QUERIES.md](QUERIES.md)** (including `GRAPH.EXPLAIN` and `GRAPH.PROFILE`). The ones to read first:
+The product depends on 85 named, parameterized queries in [graphdispatch/queries.cypher](graphdispatch/queries.cypher), all documented with their Cypher, callers, read or write, and timings in **[QUERIES.md](QUERIES.md)** (including `GRAPH.EXPLAIN` and `GRAPH.PROFILE`). The ones to read first:
 
 - `unit_candidates`: available units with the needed capabilities, their station and the station's road intersection (a multi-hop traversal).
 - `eta` and `route`: travel time and the ordered path between two intersections with `algo.SPpaths` on `travel_s`.

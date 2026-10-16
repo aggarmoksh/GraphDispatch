@@ -34,8 +34,8 @@ CREATE INDEX FOR (n:Decision) ON (n.decision_id);
 -- [load_intersections] Batch-merge intersections with a geo point.
 UNWIND $rows AS r MERGE (n:Intersection {osm_id: r.osm_id}) SET n.lat = r.lat, n.lon = r.lon, n.loc = point({latitude: r.lat, longitude: r.lon});
 
--- [load_roads] Batch-merge directed ROAD edges.
-UNWIND $rows AS r MATCH (a:Intersection {osm_id: r.src}), (b:Intersection {osm_id: r.dst}) MERGE (a)-[e:ROAD]->(b) SET e.travel_s = r.travel_s, e.length_m = r.length_m, e.name = r.name;
+-- [load_roads] Batch-merge directed ROAD edges (skipping pairs that are currently closed, so a restart never undoes a closure).
+UNWIND $rows AS r MATCH (a:Intersection {osm_id: r.src}), (b:Intersection {osm_id: r.dst}) WHERE NOT (a)-[:CLOSED_ROAD]->(b) MERGE (a)-[e:ROAD]->(b) SET e.travel_s = r.travel_s, e.length_m = r.length_m, e.name = r.name;
 
 -- [load_capabilities] Merge capability vocabulary nodes.
 UNWIND $names AS n MERGE (:Capability {name: n});
@@ -118,8 +118,8 @@ MATCH (k:HazardKind {name: $kind}) MERGE (a:Address {address_id: $address_id}) O
 -- [hazard_reported_in] Link a hazard to the incident it was reported in.
 MATCH (h:Hazard {hazard_id: $hazard_id}), (inc:Incident {incident_id: $incident_id}) CREATE (h)-[:REPORTED_IN]->(inc);
 
--- [decision_create] Create a decision node for an incident, with unmet capabilities and their reasons.
-MATCH (inc:Incident {incident_id: $incident_id}) CREATE (d:Decision {decision_id: $decision_id, ts: $ts, agent: 'deterministic-v1', rule_applied: $rule_applied, unmet: $unmet, unmet_reasons: $unmet_reasons}) CREATE (d)-[:FOR]->(inc);
+-- [decision_create] Create a decision node for an incident, with unmet capabilities, closure effects (changes) and legs with no route.
+MATCH (inc:Incident {incident_id: $incident_id}) CREATE (d:Decision {decision_id: $decision_id, ts: $ts, agent: 'deterministic-v1', rule_applied: $rule_applied, unmet: $unmet, unmet_reasons: $unmet_reasons, changes: $changes, no_route: $no_route}) CREATE (d)-[:FOR]->(inc);
 
 -- [decision_considered] Record candidate units considered, with capability, ETA and rank.
 UNWIND $rows AS r MATCH (d:Decision {decision_id: $decision_id}), (u:Unit {unit_id: r.unit_id}) CREATE (d)-[:CONSIDERED {capability: r.capability, eta_s: r.eta_s, rank: r.rank}]->(u);
@@ -143,7 +143,7 @@ UNWIND $ids AS id MATCH (d:Decision {decision_id: $decision_id}), (h:Hazard {haz
 UNWIND $ids AS id MATCH (d:Decision {decision_id: $decision_id}), (p:Incident {incident_id: id}) CREATE (d)-[:RECALLED]->(p);
 
 -- [why] Everything recorded for one decision, in a single query.
-MATCH (d:Decision {decision_id: $decision_id})-[:FOR]->(inc:Incident)-[:AT]->(a:Address) OPTIONAL MATCH (d)-[r1:CONSIDERED]->(u1:Unit) WITH d, inc, a, collect({unit_id: u1.unit_id, capability: r1.capability, eta_s: r1.eta_s, rank: r1.rank}) AS considered OPTIONAL MATCH (d)-[r2:CHOSE]->(u2:Unit) WITH d, inc, a, considered, collect({unit_id: u2.unit_id, capability: r2.capability, eta_s: r2.eta_s, reason: r2.reason}) AS chose OPTIONAL MATCH (d)-[r3:DESTINATION]->(h3:Hospital) WITH d, inc, a, considered, chose, collect({osm_id: h3.osm_id, name: h3.name, eta_s: r3.eta_s, level: r3.level}) AS destination OPTIONAL MATCH (d)-[r4:SKIPPED]->(h4:Hospital) WITH d, inc, a, considered, chose, destination, collect({osm_id: h4.osm_id, name: h4.name, eta_s: r4.eta_s, reason: r4.reason}) AS skipped OPTIONAL MATCH (d)-[r5:ROUTE]->(i5:Intersection) WITH d, inc, a, considered, chose, destination, skipped, collect({leg: r5.leg, seq: r5.seq, node: i5.osm_id, lat: i5.lat, lon: i5.lon}) AS route OPTIONAL MATCH (d)-[:RECALLED]->(h6:Hazard) OPTIONAL MATCH (h6)-[:OF_KIND]->(k6:HazardKind) WITH d, inc, a, considered, chose, destination, skipped, route, collect({hazard_id: h6.hazard_id, kind: h6.kind, note: h6.note, crew_note: k6.crew_note, created_ns: h6.created_ns}) AS recalled_hazards OPTIONAL MATCH (d)-[:RECALLED]->(p7:Incident) WITH d, inc, a, considered, chose, destination, skipped, route, recalled_hazards, collect({incident_id: p7.incident_id, type: p7.type}) AS recalled_incidents RETURN d.decision_id AS decision_id, d.ts AS ts, d.agent AS agent, d.rule_applied AS rule_applied, inc.incident_id AS incident_id, inc.type AS type, inc.status AS status, a.label AS address, considered, chose, destination, skipped, route, recalled_hazards, recalled_incidents, d.unmet AS unmet, d.unmet_reasons AS unmet_reasons;
+MATCH (d:Decision {decision_id: $decision_id})-[:FOR]->(inc:Incident)-[:AT]->(a:Address) OPTIONAL MATCH (d)-[r1:CONSIDERED]->(u1:Unit) WITH d, inc, a, collect({unit_id: u1.unit_id, capability: r1.capability, eta_s: r1.eta_s, rank: r1.rank}) AS considered OPTIONAL MATCH (d)-[r2:CHOSE]->(u2:Unit) WITH d, inc, a, considered, collect({unit_id: u2.unit_id, capability: r2.capability, eta_s: r2.eta_s, reason: r2.reason}) AS chose OPTIONAL MATCH (d)-[r3:DESTINATION]->(h3:Hospital) WITH d, inc, a, considered, chose, collect({osm_id: h3.osm_id, name: h3.name, eta_s: r3.eta_s, level: r3.level}) AS destination OPTIONAL MATCH (d)-[r4:SKIPPED]->(h4:Hospital) WITH d, inc, a, considered, chose, destination, collect({osm_id: h4.osm_id, name: h4.name, eta_s: r4.eta_s, reason: r4.reason}) AS skipped OPTIONAL MATCH (d)-[r5:ROUTE]->(i5:Intersection) WITH d, inc, a, considered, chose, destination, skipped, collect({leg: r5.leg, seq: r5.seq, node: i5.osm_id, lat: i5.lat, lon: i5.lon}) AS route OPTIONAL MATCH (d)-[:RECALLED]->(h6:Hazard) OPTIONAL MATCH (h6)-[:OF_KIND]->(k6:HazardKind) WITH d, inc, a, considered, chose, destination, skipped, route, collect({hazard_id: h6.hazard_id, kind: h6.kind, note: h6.note, crew_note: k6.crew_note, created_ns: h6.created_ns}) AS recalled_hazards OPTIONAL MATCH (d)-[:RECALLED]->(p7:Incident) WITH d, inc, a, considered, chose, destination, skipped, route, recalled_hazards, collect({incident_id: p7.incident_id, type: p7.type}) AS recalled_incidents OPTIONAL MATCH (d)-[rr:REROUTED_AROUND]->(cl:Closure) WITH d, inc, a, considered, chose, destination, skipped, route, recalled_hazards, recalled_incidents, collect({leg: rr.leg, extra_s: rr.extra_s, closure_id: cl.closure_id, name: cl.name, reason: cl.reason}) AS rerouted RETURN d.decision_id AS decision_id, d.ts AS ts, d.agent AS agent, d.rule_applied AS rule_applied, inc.incident_id AS incident_id, inc.type AS type, inc.status AS status, a.label AS address, considered, chose, destination, skipped, route, recalled_hazards, recalled_incidents, d.unmet AS unmet, d.unmet_reasons AS unmet_reasons, rerouted, d.changes AS changes, d.no_route AS no_route;
 
 -- [decision_units] Units chosen by a decision with their current status.
 MATCH (d:Decision {decision_id: $decision_id})-[:CHOSE]->(u:Unit) RETURN u.unit_id AS unit_id, u.status AS status ORDER BY unit_id;
@@ -157,8 +157,8 @@ MATCH (inc:Incident {incident_id: $incident_id}) OPTIONAL MATCH (u:Unit)-[r:ASSI
 -- [set_unit_status] Administrative/test helper: set one unit's status.
 MATCH (u:Unit {unit_id: $unit_id}) SET u.status = $status;
 
--- [wipe_runtime] Test helper: delete all runtime nodes (incidents, callers, addresses, hazards, decisions).
-MATCH (n) WHERE n:Incident OR n:Caller OR n:Address OR n:Hazard OR n:Decision DETACH DELETE n;
+-- [wipe_runtime] Test helper: delete all runtime nodes (incidents, callers, addresses, hazards, decisions, closures). Reopen closures first so no road stays closed.
+MATCH (n) WHERE n:Incident OR n:Caller OR n:Address OR n:Hazard OR n:Decision OR n:Closure DETACH DELETE n;
 
 -- [unit_statuses] Every unit with its current status.
 MATCH (u:Unit) RETURN u.unit_id AS unit_id, u.status AS status ORDER BY unit_id;
@@ -182,16 +182,16 @@ MATCH (k:HazardKind) RETURN k.name AS name ORDER BY name;
 MATCH (inc:Incident {incident_id: $incident_id})-[:OF_TYPE]->(t:IncidentType) OPTIONAL MATCH (t)-[q:REQUIRES]->(c1:Capability) WITH inc, t, collect({cap: c1.name, need: q.count, source: 'base'}) AS base OPTIONAL MATCH (inc)-[:AT]->(:Address)<-[:AT]-(h:Hazard)-[:OF_KIND]->(k:HazardKind)-[r:ADDS_REQUIREMENT]->(c2:Capability) WHERE h.valid_from <= $now AND $now <= h.valid_to AND r.incident_type = t.name WITH base, c2.name AS cap, k.name AS kind, max(r.count) AS need, collect(h.hazard_id) AS ids WITH base, collect({cap: cap, need: need, source: 'hazard:' + reduce(acc = '', i IN ids | CASE WHEN acc = '' THEN i ELSE acc + ',' + i END) + ':' + kind}) AS added UNWIND base + added AS x WITH x WHERE x.cap IS NOT NULL RETURN x.cap AS cap, sum(x.need) AS need, collect(x.source) AS sources ORDER BY cap;
 
 -- [runtime_label_counts] Node counts for runtime labels only (reset dry run).
-MATCH (n) WHERE n:Incident OR n:Decision OR n:Caller OR n:Address OR n:Hazard RETURN labels(n)[0] AS label, count(n) AS c ORDER BY label;
+MATCH (n) WHERE n:Incident OR n:Decision OR n:Caller OR n:Address OR n:Hazard OR n:Closure RETURN labels(n)[0] AS label, count(n) AS c ORDER BY label;
 
 -- [runtime_rel_counts] Relationship counts for relationships touching runtime labels (reset dry run).
-MATCH (a)-[r]->(b) WHERE a:Incident OR a:Decision OR a:Caller OR a:Address OR a:Hazard OR b:Incident OR b:Decision OR b:Caller OR b:Address OR b:Hazard RETURN type(r) AS t, count(r) AS c ORDER BY t;
+MATCH (a)-[r]->(b) WHERE a:Incident OR a:Decision OR a:Caller OR a:Address OR a:Hazard OR a:Closure OR b:Incident OR b:Decision OR b:Caller OR b:Address OR b:Hazard OR b:Closure OR type(r) = 'CLOSED_ROAD' RETURN type(r) AS t, count(r) AS c ORDER BY t;
 
 -- [seed_label_counts] Node counts for non-runtime (seed) labels.
-MATCH (n) WHERE NOT (n:Incident OR n:Decision OR n:Caller OR n:Address OR n:Hazard) RETURN labels(n)[0] AS label, count(n) AS c ORDER BY label;
+MATCH (n) WHERE NOT (n:Incident OR n:Decision OR n:Caller OR n:Address OR n:Hazard OR n:Closure) RETURN labels(n)[0] AS label, count(n) AS c ORDER BY label;
 
 -- [seed_rel_counts] Relationship counts for relationships between seed labels only.
-MATCH (a)-[r]->(b) WHERE NOT (a:Incident OR a:Decision OR a:Caller OR a:Address OR a:Hazard OR b:Incident OR b:Decision OR b:Caller OR b:Address OR b:Hazard) RETURN type(r) AS t, count(r) AS c ORDER BY t;
+MATCH (a)-[r]->(b) WHERE NOT (a:Incident OR a:Decision OR a:Caller OR a:Address OR a:Hazard OR a:Closure OR b:Incident OR b:Decision OR b:Caller OR b:Address OR b:Hazard OR b:Closure OR type(r) = 'CLOSED_ROAD') RETURN type(r) AS t, count(r) AS c ORDER BY t;
 
 -- [incident_type_names] List incident type names (enum source for LLM tools).
 MATCH (t:IncidentType) RETURN t.name AS name ORDER BY name;
@@ -223,3 +223,32 @@ MATCH (h:Hazard)-[:AT]->(a:Address) WHERE h.valid_from <= $now AND $now <= h.val
 -- [expire_incidents] Demo self-healing: expire open or dispatched incidents created before a cutoff and free the units assigned to them (decisions and hazards are kept).
 MATCH (inc:Incident) WHERE inc.status IN ['open', 'dispatched'] AND inc.created_at < $cutoff OPTIONAL MATCH (u:Unit)-[r:ASSIGNED_TO]->(inc) WITH inc, collect(u) AS units, collect(r) AS rels FOREACH (x IN units | SET x.status = 'available') FOREACH (e IN rels | DELETE e) SET inc.status = 'expired' RETURN count(inc) AS expired, sum(size(units)) AS units_freed;
 
+-- [idx_closure] Index Closure.closure_id.
+CREATE INDEX FOR (n:Closure) ON (n.closure_id);
+
+-- [close_road] Close a road: retype the ROAD edges between two intersections (both directions where they exist) to CLOSED_ROAD with the same properties plus closure_id, and create the Closure node.
+MATCH (a:Intersection {osm_id: $src}), (b:Intersection {osm_id: $dst}) OPTIONAL MATCH (a)-[f:ROAD]->(b) OPTIONAL MATCH (b)-[r:ROAD]->(a) WITH a, b, f, r WHERE f IS NOT NULL OR r IS NOT NULL CREATE (c:Closure {closure_id: $closure_id, reason: $reason, closed_at: $now, expires_at: $expires, src_osm: $src, dst_osm: $dst, name: coalesce(f.name, r.name, ''), synthetic: true}) CREATE (c)-[:AT]->(a), (c)-[:AT]->(b) FOREACH (e IN CASE WHEN f IS NULL THEN [] ELSE [f] END | CREATE (a)-[:CLOSED_ROAD {travel_s: e.travel_s, length_m: e.length_m, name: e.name, closure_id: $closure_id}]->(b)) FOREACH (e IN CASE WHEN r IS NULL THEN [] ELSE [r] END | CREATE (b)-[:CLOSED_ROAD {travel_s: e.travel_s, length_m: e.length_m, name: e.name, closure_id: $closure_id}]->(a)) FOREACH (e IN CASE WHEN f IS NULL THEN [] ELSE [f] END | DELETE e) FOREACH (e IN CASE WHEN r IS NULL THEN [] ELSE [r] END | DELETE e) RETURN c.closure_id AS id;
+
+-- [reopen_road] Reopen a closed road: retype its CLOSED_ROAD edges back to ROAD with the original travel_s, length_m and name, and mark the Closure reopened (it is kept for provenance).
+MATCH (c:Closure {closure_id: $closure_id}) WHERE c.reopened_at IS NULL MATCH (a:Intersection {osm_id: c.src_osm}), (b:Intersection {osm_id: c.dst_osm}) OPTIONAL MATCH (a)-[f:CLOSED_ROAD {closure_id: $closure_id}]->(b) OPTIONAL MATCH (b)-[r:CLOSED_ROAD {closure_id: $closure_id}]->(a) FOREACH (e IN CASE WHEN f IS NULL THEN [] ELSE [f] END | CREATE (a)-[:ROAD {travel_s: e.travel_s, length_m: e.length_m, name: e.name}]->(b)) FOREACH (e IN CASE WHEN r IS NULL THEN [] ELSE [r] END | CREATE (b)-[:ROAD {travel_s: e.travel_s, length_m: e.length_m, name: e.name}]->(a)) FOREACH (e IN CASE WHEN f IS NULL THEN [] ELSE [f] END | DELETE e) FOREACH (e IN CASE WHEN r IS NULL THEN [] ELSE [r] END | DELETE e) SET c.reopened_at = $now RETURN c.closure_id AS id;
+
+-- [closures_list] Active closures (not yet reopened) with the coordinates of both ends.
+MATCH (c:Closure) WHERE c.reopened_at IS NULL MATCH (a:Intersection {osm_id: c.src_osm}), (b:Intersection {osm_id: c.dst_osm}) RETURN c.closure_id AS closure_id, c.reason AS reason, c.name AS name, c.closed_at AS closed_at, c.expires_at AS expires_at, c.src_osm AS src_osm, c.dst_osm AS dst_osm, a.lat AS a_lat, a.lon AS a_lon, b.lat AS b_lat, b.lon AS b_lon ORDER BY c.closed_at, c.closure_id;
+
+-- [active_closure_count] Number of active (not reopened) closures.
+MATCH (c:Closure) WHERE c.reopened_at IS NULL RETURN count(c) AS n;
+
+-- [expired_closures] Ids of active closures whose expiry time has passed.
+MATCH (c:Closure) WHERE c.reopened_at IS NULL AND c.expires_at <= $now RETURN c.closure_id AS closure_id ORDER BY c.expires_at;
+
+-- [nearest_road_segment] The open ROAD segment whose midpoint is nearest to a point (distance from the intersection coordinates).
+MATCH (a:Intersection)-[r:ROAD]->(b:Intersection) WITH a, b, r, distance(point({latitude: (a.lat + b.lat) / 2, longitude: (a.lon + b.lon) / 2}), point({latitude: $lat, longitude: $lon})) AS d ORDER BY d LIMIT 1 RETURN a.osm_id AS src, b.osm_id AS dst, r.name AS name, d AS dist_m;
+
+-- [eta_all] Travel time ignoring closures: cheapest path over ROAD and CLOSED_ROAD (used to show what a closure cost).
+MATCH (a:Intersection {osm_id: $src}), (b:Intersection {osm_id: $dst}) CALL algo.SPpaths({sourceNode: a, targetNode: b, relTypes: ['ROAD', 'CLOSED_ROAD'], relDirection: 'outgoing', weightProp: 'travel_s', pathCount: 1}) YIELD path, pathWeight RETURN pathWeight;
+
+-- [route_all] Cheapest path over ROAD and CLOSED_ROAD: weight, ordered node ids and the closure ids it passes through (empty when no closed road is on it).
+MATCH (a:Intersection {osm_id: $src}), (b:Intersection {osm_id: $dst}) CALL algo.SPpaths({sourceNode: a, targetNode: b, relTypes: ['ROAD', 'CLOSED_ROAD'], relDirection: 'outgoing', weightProp: 'travel_s', pathCount: 1}) YIELD path, pathWeight RETURN pathWeight, [n IN nodes(path) | n.osm_id] AS nodes, [r IN relationships(path) WHERE type(r) = 'CLOSED_ROAD' | r.closure_id] AS closed;
+
+-- [decision_rerouted] Record, per leg, the closure a decision had to route around and the extra seconds it cost.
+UNWIND $rows AS r MATCH (d:Decision {decision_id: $decision_id}), (c:Closure {closure_id: r.closure_id}) CREATE (d)-[:REROUTED_AROUND {leg: r.leg, extra_s: r.extra_s}]->(c);

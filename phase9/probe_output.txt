@@ -1,0 +1,9 @@
+S1 hospital route: 46 intersections; the edge to close is the middle one: 33783786 -> 311645239
+before closure  relTypes ['ROAD']:               weight 550.50 s, uses 33783786->311645239: True
+edge counts before: {'ROAD': 10430, 'CLOSED_ROAD': 0} | forward props [[21.0900247609182, 612.823980324402, 'Bayshore Freeway']] | reverse edge exists: False
+close_road returned: [['clo-probe']] | edge counts after: {'ROAD': 10429, 'CLOSED_ROAD': 1}
+CLOSED_ROAD edges: [[33783786, 311645239, 21.0900247609182, 612.823980324402, 'Bayshore Freeway', 'clo-probe']]
+after closure   relTypes ['ROAD']:               weight 584.87 s, uses closed pair: False, types ['ROAD']
+after closure   relTypes ['ROAD','CLOSED_ROAD']: weight 550.50 s, uses closed pair: True, types ['CLOSED_ROAD', 'ROAD']
+reopen_road returned: [['clo-probe']] | edge counts: {'ROAD': 10430, 'CLOSED_ROAD': 0} | restored props equal: True | weight back to 550.50 s
+RESULT: ['ROAD'] skips the closed road: True; ['ROAD','CLOSED_ROAD'] still traverses it: True; reopen restores exactly: True

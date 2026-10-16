@@ -1,5 +1,6 @@
 """Incident memory, decision provenance and the human-confirmed dispatch action. All synthetic IDs."""
 import csv
+import json
 import os
 import re
 import time
@@ -112,7 +113,9 @@ def record_decision(incident_id, rec, recalled=None, now=None):
     p = {"decision_id": did}
     db.write("decision_create", {**p, "incident_id": incident_id, "ts": now, "rule_applied": rec["rule_applied"],
                                     "unmet": [m["capability"] for m in rec["unmet"]],
-                                    "unmet_reasons": [m["reason"] for m in rec["unmet"]]})
+                                    "unmet_reasons": [m["reason"] for m in rec["unmet"]],
+                                    "changes": json.dumps(rec.get("changes") or {"units": [], "hospital": None}),
+                                    "no_route": list(rec.get("no_route") or [])})
     if rec["considered"]:
         db.write("decision_considered", {**p, "rows": rec["considered"]})
     if rec["units"]:
@@ -125,6 +128,8 @@ def record_decision(incident_id, rec, recalled=None, now=None):
     route = [{"leg": r["leg"], "seq": i, "node": n} for r in rec["routes"] for i, n in enumerate(r["nodes"])]
     if route:
         db.write("decision_route", {**p, "rows": route})
+    if rec.get("rerouted"):
+        db.write("decision_rerouted", {**p, "rows": rec["rerouted"]})
     if recalled["hazards"]:
         db.write("decision_recalled_hazards", {**p, "ids": [x["hazard_id"] for x in recalled["hazards"]]})
     if recalled["incidents"]:
@@ -138,7 +143,7 @@ def why(decision_id):
     if not rows:
         raise KeyError(decision_id)
     (did, ts, agent, rule, inc_id, itype, status, address, considered, chose, dest, skipped, route, rhaz, rinc,
-     unmet, unmet_reasons) = rows[0]
+     unmet, unmet_reasons, rerouted, changes, no_route) = rows[0]
 
     def keep(items, key):
         return [x for x in items if x.get(key) is not None]
@@ -154,6 +159,9 @@ def why(decision_id):
         "recalled_hazards": sorted(keep(rhaz, "hazard_id"), key=lambda h: (h.get("created_ns") or 0, h["hazard_id"])),
         "recalled_incidents": keep(rinc, "incident_id"),
         "unmet": [{"capability": c, "reason": r} for c, r in zip(unmet or [], unmet_reasons or [])],
+        "rerouted": sorted(keep(rerouted, "closure_id"), key=lambda x: (x["leg"], x["closure_id"])),
+        "changes": json.loads(changes) if changes else {"units": [], "hospital": None},
+        "no_route": list(no_route or []),
     }
 
 
@@ -217,6 +225,14 @@ def explain_why(w):
         lines.append(f"Destination: {hospital_label(w['destination'])} (ETA {w['destination']['eta_s']:.0f} s)")
     for s in w["skipped"]:
         lines.append(f"  skipped {s['name']} ({s['eta_s']:.0f} s): {s['reason']}")
+    for x in w.get("rerouted", []):
+        lines.append(f"Rerouted around {x['name'] or 'a road'} (synthetic closure) for {x['leg']}: +{x['extra_s']:.0f} s")
+    for ch in w.get("changes", {}).get("units", []):
+        lines.append(f"Without the closure, {', '.join(ch['without'])} would have covered {ch['capability']}")
+    if w.get("changes", {}).get("hospital"):
+        lines.append(f"Without the closure the patient would have gone to {w['changes']['hospital']['without']}")
+    for leg in w.get("no_route", []):
+        lines.append(f"No route: {leg}")
     legs = {}
     for r in w["route"]:
         legs[r["leg"]] = legs.get(r["leg"], 0) + 1

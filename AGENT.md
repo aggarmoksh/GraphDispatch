@@ -33,7 +33,10 @@ Graph Hacks (WeMakeDevs x FalkorDB), Tracks 01 and 02.
 - Address ids are normalized (lowercase, punctuation stripped, whitespace collapsed, last word abbreviated via seed/address_suffixes.csv), so "200 Demo Street" and "200 demo st." are one Address. Device-derived labels are "device@<lat 4dp>,<lon 4dp>".
 - LLM intake (graphdispatch/intake.py): text -> one forced classify_call -> validation against the graph's enums in code (IntakeRejected, nothing written) -> create incident (call_text and intake_model stored, synthetic) -> caller-reported hazards written as Hazard {reported_by:'caller'} -> effective_requirements -> recommend -> record_decision. Never dispatches. The model's confidence is uncalibrated (0.95 everywhere in the 4A probe) and is neither stored nor shown.
 - MCP (graphdispatch/tools.py + mcp_server.py, SDK package `mcp` 2.3.0): exactly six tools; five are read-only and report_hazard is the only write. There is no dispatch tool, no clear tool and no tool that takes Cypher or free query text. Dispatch stays human-confirmed (CLI/ops).
-- Memory changes decisions: requirements for an incident are the type's REQUIRES plus ADDS_REQUIREMENT from active hazards at the same Address whose incident_type matches (query effective_requirements, one query). Summing rule: sum across base and DISTINCT hazard kinds; repeated hazards of one kind never add up (group by capability and kind, take the max count per kind). Sources list each kind once with all contributing hazard ids. Summing rule: sum across base and DISTINCT hazard kinds; repeated hazards of one kind never add up (group by capability and kind, take the max count per kind). Sources list each kind once with all contributing hazard ids. Summing rule: sum across base and DISTINCT hazard kinds; repeated hazards of one kind never add up (group by capability and kind, take the max count per kind). Sources list each kind once with all contributing hazard ids. Each CHOSE edge records why the capability was required ('base' or 'hazard:<id>:<kind>'). Unmet capabilities are stored on the Decision (unmet, unmet_reasons); a shortage never crashes a call.
+- Road closures (Phase 9): a closure retypes the ROAD edges between two intersections (both directions where they exist) to CLOSED_ROAD with the same properties plus closure_id, and creates a (:Closure) node; algo.SPpaths with relTypes ['ROAD'] then skips the road, so no new algorithm is needed. reopen_road restores the edges exactly and keeps the Closure node (reopened_at set) so earlier decisions stay explainable. recommend() also computes the same legs over ['ROAD','CLOSED_ROAD'] when any closure is active, and records per leg (:Decision)-[:REROUTED_AROUND {leg, extra_s}]->(:Closure), plus Decision.changes (JSON: units or hospital that would have been chosen without the closure) and Decision.no_route (legs that became unreachable; a decision never crashes on them).
+- Closure limits for the public site (graphdispatch/api.py): at most 3 active closures (MAX_ACTIVE_CLOSURES, 409 beyond), at most 10 close actions per client IP per 10 minutes (429), and closures reopen by themselves after DEMO_EXPIRE_MIN through the existing sweeper. Runtime reset helpers reopen closures first (closures.reopen_all) and the loader skips closed pairs, so a restart never undoes a closure.
+- The demo preset "Road closed on the stroke route" closes the rows of seed/demo_closures.csv (found with phase9/find_demo_closure.py using the independent oracle) and takes the S1 call. No single closure both reroutes a chosen leg and changes the chosen unit, so the file has two rows: a hospital-leg detour (Bayshore Freeway, +83.8 s together with the other closure) and a unit change (West Taylor Street, E7 and M7 become E10 and M10).
+- Memory changes decisions: requirements for an incident are the type's REQUIRES plus ADDS_REQUIREMENT from active hazards at the same Address whose incident_type matches (query effective_requirements, one query). Summing rule: sum across base and DISTINCT hazard kinds; repeated hazards of one kind never add up (group by capability and kind, take the max count per kind). Sources list each kind once with all contributing hazard ids. Summing rule: sum across base and DISTINCT hazard kinds; repeated hazards of one kind never add up (group by capability and kind, take the max count per kind). Sources list each kind once with all contributing hazard ids. Summing rule: sum across base and DISTINCT hazard kinds; repeated hazards of one kind never add up (group by capability and kind, take the max count per kind). Sources list each kind once with all contributing hazard ids. Summing rule: sum across base and DISTINCT hazard kinds; repeated hazards of one kind never add up (group by capability and kind, take the max count per kind). Sources list each kind once with all contributing hazard ids. Summing rule: sum across base and DISTINCT hazard kinds; repeated hazards of one kind never add up (group by capability and kind, take the max count per kind). Sources list each kind once with all contributing hazard ids. Each CHOSE edge records why the capability was required ('base' or 'hazard:<id>:<kind>'). Unmet capabilities are stored on the Decision (unmet, unmet_reasons); a shortage never crashes a call.
 - Hazard kinds are a closed vocabulary (HazardKind from seed/hazard_rules.csv); add_hazard refuses unknown kinds and lists the allowed ones.
 - Trauma levels come from the CA EMSA Designated Trauma Centers list (updated 2025-08-25) and are stored as OFFERS {level}; they are displayed, never used to choose a hospital.
 - Runtime labels are Incident, Decision, Caller, Address, Hazard. scripts/reset.py is the only reset path: dry run by default, --yes only for sjfd or sjfd_test, deletes runtime labels only and restores seed unit statuses.
@@ -144,6 +147,7 @@ Run: `python -m uvicorn graphdispatch.api:app --port 8000` (graph from env GRAPH
 - API (graphdispatch/api.py): GET /api/health (real graph read, 503 if FalkorDB is down), GET /api/meta, POST /api/call (the only LLM path), POST /api/recommend (graph only), GET /api/decision/{id}, POST /api/dispatch/{decision_id}, POST /api/clear/{incident_id}, GET /api/incidents, POST /api/hazard. Interactive docs at /api/docs.
 - Every decision response carries `routes` ([lon, lat] arrays per leg, from the ROUTE edges) and `queries` (name, real Cypher text, ms, summarized params) for every named query the request ran; db.record_queries() collects them.
 - Cost control for a public URL: /api/call is capped server-side by LLM_DAILY_CAP (env, default 150, counted by UTC date in runs/llm_daily.json) and 6 calls per 10 minutes per client IP (TRUST_PROXY=1 only behind CloudFront or a load balancer: it then counts the CloudFront-Viewer-Address header with the port stripped, else the RIGHTMOST X-Forwarded-For entry, never the client-supplied leftmost ones; with TRUST_PROXY=0 forwarding headers are ignored). Over a cap the API returns 429 and the page switches to Graph only. The graph-only path never calls the LLM. Caller ids are generated server-side.
+- Closure endpoints: GET /api/closures (active closures with geometry), POST /api/closures ({lat, lon, reason} or {src_osm, dst_osm}), DELETE /api/closures/{id}; the decision payload carries rerouted, changes and no_route; /api/meta carries demo_closures and closure_limits.
 - Static page (graphdispatch/static/): index.html, app.js, api.js, map.js, panel.js, style.css as plain ES modules, no build step. MapLibre GL JS 5.24.0 is vendored in static/vendor/ (source recorded in seed/DATA.md). Runtime network: the tile server (tiles.openfreemap.org) and Google Fonts only.
 - Design: NFPA 704 placard colors carry meaning (fire red for units and stations, medical blue for hospitals, hazard yellow for hazard shapes only, never as text). Tokens in style.css: ink #1D2733, muted #5E6B7A, surface #F2F4F6, panel #FFFFFF, fire #C8102E, medical #1F5FBF, hazard #F2C230, line #D5DBE1. Atkinson Hyperlegible Next for UI, Atkinson Hyperlegible Mono only for unit ids, ETAs and Cypher. Sentence case, one 6 px control radius, visible focus, reduced motion respected.
 - The memorable element: every line in the decision panel is a button that opens the Why drawer on the Cypher query that produced it, with its parameters and timings.
@@ -167,6 +171,12 @@ Run: `python -m uvicorn graphdispatch.api:app --port 8000` (graph from env GRAPH
 - Local proof: `docker compose -p gdlocal -f docker-compose.yml -f docker-compose.local.yml up -d --build` with a local .env.server (LLM_DAILY_CAP=0), then `python phase6a/smoke.py http://localhost:8080 --calls 20`; tear down with `docker compose -p gdlocal down -v` (project gdlocal only; never touch falkordb-dev).
 - Self-healing demo: a background task (every DEMO_EXPIRY_INTERVAL_S, default 300, and once at startup) expires incidents that are open or dispatched and older than DEMO_EXPIRE_MIN (default 30): status 'expired', assigned units back to 'available' (their seed status). Hazards, decisions and callers are kept so memory still works.
 - ship.sh ships only `git archive HEAD`, so no local .env can leave the machine; it never copies an env file from this machine (the host keeps its own ~/graphdispatch/.env.server). Never run it with --yes without the operator.
+
+## Phase 9 pitfalls
+- FalkorDB caps result sets at 10,000 rows (RESULTSET_SIZE) and there are 10,430 ROAD edges: never list all edges; compare counts and sums.
+- Any process that MERGEs ROAD edges from the CSV (the loader runs on every app start) must skip pairs that are currently CLOSED_ROAD.
+- The browser logs every non-2xx response as a console error even when the page handles it; avoid requests that are known to fail (skip already-closed roads).
+- A closure must be reopened before its Closure node is deleted (wipe_runtime does not touch CLOSED_ROAD edges); use closures.reopen_all first.
 
 ## Phase 6A pitfalls
 - FalkorDB's image declares no volume; mount one at /var/lib/falkordb/data yourself or data dies with the container. Give it stop_grace_period so Redis can write its snapshot on shutdown.
@@ -201,7 +211,7 @@ Every named query in graphdispatch/queries.cypher (kept in sync by tests/test_do
 - `idx_hazard`: Index Hazard.hazard_id.
 - `idx_decision`: Index Decision.decision_id.
 - `load_intersections`: Batch-merge intersections with a geo point.
-- `load_roads`: Batch-merge directed ROAD edges.
+- `load_roads`: Batch-merge directed ROAD edges (skipping pairs that are currently closed, so a restart never undoes a closure).
 - `load_capabilities`: Merge capability vocabulary nodes.
 - `load_stations`: Merge stations.
 - `load_hospitals`: Merge hospitals (matched by osm_id, never by name).
@@ -229,7 +239,7 @@ Every named query in graphdispatch/queries.cypher (kept in sync by tests/test_do
 - `recall_hazards`: Hazards at the incident's address that are valid at the given time, with the kind's crew note.
 - `add_hazard`: Create a hazard of a known kind at an address (address created with label, and position when given).
 - `hazard_reported_in`: Link a hazard to the incident it was reported in.
-- `decision_create`: Create a decision node for an incident, with unmet capabilities and their reasons.
+- `decision_create`: Create a decision node for an incident, with unmet capabilities, closure effects (changes) and legs with no route.
 - `decision_considered`: Record candidate units considered, with capability, ETA and rank.
 - `decision_chose`: Record chosen units with the capability they cover, ETA and why the capability was required.
 - `decision_destination`: Record the chosen destination hospital, ETA and designation level.
@@ -242,7 +252,7 @@ Every named query in graphdispatch/queries.cypher (kept in sync by tests/test_do
 - `dispatch`: All-or-nothing dispatch: assign the chosen units and mark the incident dispatched only if every chosen unit is available.
 - `clear`: Return an incident's assigned units to available and mark the incident cleared.
 - `set_unit_status`: Administrative/test helper: set one unit's status.
-- `wipe_runtime`: Test helper: delete all runtime nodes (incidents, callers, addresses, hazards, decisions).
+- `wipe_runtime`: Test helper: delete all runtime nodes (incidents, callers, addresses, hazards, decisions, closures). Reopen closures first so no road stays closed.
 - `unit_statuses`: Every unit with its current status.
 - `assigned_to_count`: Number of ASSIGNED_TO relationships (test helper).
 - `idx_hazard_kind`: Index HazardKind.name.
@@ -264,6 +274,16 @@ Every named query in graphdispatch/queries.cypher (kept in sync by tests/test_do
 - `meta_hospitals`: Hospitals with snapped position, offered capabilities and designation levels.
 - `active_hazards_map`: Active hazards with the address position and crew note (for map markers).
 - `expire_incidents`: Demo self-healing: expire open or dispatched incidents created before a cutoff and free the units assigned to them (decisions and hazards are kept).
+- `idx_closure`: Index Closure.closure_id.
+- `close_road`: Close a road: retype the ROAD edges between two intersections (both directions where they exist) to CLOSED_ROAD with the same properties plus closure_id, and create the Closure node.
+- `reopen_road`: Reopen a closed road: retype its CLOSED_ROAD edges back to ROAD with the original travel_s, length_m and name, and mark the Closure reopened (it is kept for provenance).
+- `closures_list`: Active closures (not yet reopened) with the coordinates of both ends.
+- `active_closure_count`: Number of active (not reopened) closures.
+- `expired_closures`: Ids of active closures whose expiry time has passed.
+- `nearest_road_segment`: The open ROAD segment whose midpoint is nearest to a point (distance from the intersection coordinates).
+- `eta_all`: Travel time ignoring closures: cheapest path over ROAD and CLOSED_ROAD (used to show what a closure cost).
+- `route_all`: Cheapest path over ROAD and CLOSED_ROAD: weight, ordered node ids and the closure ids it passes through (empty when no closed road is on it).
+- `decision_rerouted`: Record, per leg, the closure a decision had to route around and the extra seconds it cost.
 
 ## Anti-features
 - Voice input

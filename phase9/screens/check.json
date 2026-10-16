@@ -1,0 +1,58 @@
+{
+ "checks": {
+  "closure-desktop": {
+   "closed_labels": 2,
+   "labels_inside_map": 2,
+   "labels_under_legend": 0,
+   "points_outside_view": 0,
+   "closure_list_items": 2,
+   "location_markers": 1,
+   "rerouted_line": [
+    "Rerouted around Bayshore Freeway (synthetic closure): +1:24"
+   ],
+   "without_lines": [
+    "Without the closure, E7 would have gone (Paramedic (ALS))",
+    "Without the closure, M7 would have gone (Ambulance transport)"
+   ],
+   "scroll_w": [
+    1440,
+    1440
+   ],
+   "ok": true
+  },
+  "closure-mobile": {
+   "closed_labels": 2,
+   "labels_inside_map": 2,
+   "labels_under_legend": 0,
+   "points_outside_view": 0,
+   "closure_list_items": 2,
+   "location_markers": 1,
+   "rerouted_line": [
+    "Rerouted around Bayshore Freeway (synthetic closure): +1:24"
+   ],
+   "without_lines": [
+    "Without the closure, E7 would have gone (Paramedic (ALS))",
+    "Without the closure, M7 would have gone (Ambulance transport)"
+   ],
+   "scroll_w": [
+    390,
+    390
+   ],
+   "ok": true
+  }
+ },
+ "panel_text_desktop": "Stroke at caller location 37.3300, -121.9300\n\nStatus: open. Synthetic incident inc-4fbb81945a.\n\nUnits to send (synthetic)\nUnit\tCovers\tTime\tWhy required\nE10\tParamedic (ALS)\t2:37\trequired by incident type\nM10\tAmbulance transport\t2:37\trequired by incident type\nDestination hospital\nRegional Medical Center of San Jose, 10:34 away\nO'Connor Hospital, 0:49 away: no clot removal (nearest)\nSanta Clara Valley Medical Center, 2:20 away: no clot removal\nRegional is 9:45 farther than O'Connor. AHA stroke guidance allows up to 30:00 extra to reach clot removal, so the patient goes to Regional.\n\nSource: AHA Mission: Lifeline Stroke EMS algorithm\n\nRoad closures\nRerouted around Bayshore Freeway (synthetic closure): +1:24\non the way to the hospital; closure reason: Synthetic closure for the demo\nWithout the closure, E7 would have gone (Paramedic (ALS))\nWithout the closure, M7 would have gone (Ambulance transport)\nDispatch these units\nClear incident",
+ "why_route_all_has_closed_road": true,
+ "third_closure_listed": true,
+ "reopen_button_works": true,
+ "console_errors": [],
+ "page_errors": [],
+ "request_hosts": [
+  "fonts.googleapis.com",
+  "fonts.gstatic.com",
+  "localhost",
+  "tiles.openfreemap.org"
+ ],
+ "unexpected_hosts": [],
+ "all_checks_ok": true
+}

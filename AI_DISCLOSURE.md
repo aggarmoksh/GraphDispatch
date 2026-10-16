@@ -13,3 +13,4 @@ Built with Claude Code as the coding assistant; design decisions and verificatio
 - 2026-10-16 Phase 6A: Dockerfile, docker compose, self-healing demo state, safe client-IP handling, IAM policy file, dry-run ship script, local container proof.
 - 2026-10-16 Phase 7: pre-registered evaluation (independent oracle, straight-line baseline, LLM-with-facts baseline) and results.
 - 2026-10-16 Phase 8: judge-facing README and QUERIES.md, post-hoc seconds-lost metric, MIT license, history scan and a filtered public copy (Claude Code wrote the docs and scripts; the author decides what is published).
+- 2026-10-16 Phase 9: road closures as CLOSED_ROAD edges with provenance, public-site limits, a demo preset and UI (Claude Code wrote the code from the phase brief; the author decided scope and rejected a v2 evaluation).

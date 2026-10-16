@@ -13,6 +13,13 @@ export const QUERY_INFO = {
   recall_incidents: "Earlier incidents at the same normalized address in the last 30 days.",
   route: "The ordered road intersections of the cheapest path, drawn on the map.",
   why: "Everything recorded for this decision, read back in one query.",
+  close_road: "Closing a road retypes its ROAD edges to CLOSED_ROAD with the same properties, so algo.SPpaths over ROAD skips them; the Closure node records why and when.",
+  reopen_road: "Reopening retypes the CLOSED_ROAD edges back to ROAD with the original travel time, length and name.",
+  nearest_road_segment: "The open road segment whose midpoint is nearest to the clicked point.",
+  route_all: "The cheapest path ignoring closures (over ROAD and CLOSED_ROAD), with the closures it passes through. The difference from the real path is the detour.",
+  eta_all: "Travel time ignoring closures, used to show what the closure cost and which unit would have gone without it.",
+  decision_rerouted: "Records, per leg, which closure the decision had to route around and the extra seconds.",
+  active_closure_count: "How many closures are active; the closure comparison only runs when there is at least one."
 };
 
 // ---------------------------------------------------------------- plain-language helpers (exported for the map and app)
@@ -150,6 +157,22 @@ export function renderDecision(root, p, ctx) {
   hs.appendChild(qbutton(rule, "dest_capability", ctx, "block rule"));
   if (source) hs.appendChild(el("p", "source", `Source: ${source}`));
   root.appendChild(hs);
+
+  // road closures: rerouting, what would have changed, and legs with no route
+  const cl = p.rerouted || [], ch = p.changes || { units: [], hospital: null }, nr = p.no_route || [];
+  if (cl.length || ch.units.length || ch.hospital || nr.length) {
+    const cs = el("div", "sect closureline");
+    cs.appendChild(el("h3", null, "Road closures"));
+    cl.forEach((x) => {
+      cs.appendChild(qbutton(`Rerouted around ${x.name || "a closed road"} (synthetic closure): +${mmss(x.extra_s)}`, "route_all", ctx, "block"));
+      const legText = x.leg === "hospital" ? "on the way to the hospital" : `for unit ${x.leg}`;
+      cs.appendChild(qbutton(`${legText}; closure reason: ${x.reason || "synthetic"}`, "close_road", ctx, "block sub closure-sub"));
+    });
+    ch.units.forEach((c) => cs.appendChild(qbutton(`Without the closure, ${c.without.join(", ")} would have gone (${capLabel(c.capability)})`, "eta_all", ctx, "block")));
+    if (ch.hospital) cs.appendChild(qbutton(`Without the closure, the patient would have gone to ${ch.hospital.without}`, "eta_all", ctx, "block"));
+    nr.forEach((leg) => cs.appendChild(qbutton(`No route: ${leg}`, "eta", ctx, "block unmet")));
+    root.appendChild(cs);
+  }
 
   // memory
   if (p.recalled_hazard_groups.length || p.recalled_incidents.length) {

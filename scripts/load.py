@@ -14,7 +14,7 @@ from graphdispatch import db  # noqa: E402
 SEED = ROOT / "seed"
 B = 500
 INDEXES = ["idx_intersection", "idx_unit", "idx_station", "idx_hospital", "idx_capability", "idx_incident_type",
-           "idx_incident", "idx_address", "idx_caller", "idx_hazard", "idx_decision", "idx_hazard_kind"]
+           "idx_incident", "idx_address", "idx_caller", "idx_hazard", "idx_decision", "idx_hazard_kind", "idx_closure"]
 
 
 def snapshot_dir():

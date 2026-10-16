@@ -35,6 +35,9 @@ def main():
     print(f"graph={a.graph} mode={'RESET' if a.yes else 'dry run (no changes)'}")
     print("runtime labels:       ", table("runtime_label_counts"))
     print("runtime relationships:", table("runtime_rel_counts"))
+    if a.yes:
+        from graphdispatch import closures
+        closures.reopen_all()                  # restore every closed road first so the seed counts are comparable
     seed_before = (table("seed_label_counts"), table("seed_rel_counts"))
     if not a.yes:
         print("seed labels (unchanged):", seed_before[0])
