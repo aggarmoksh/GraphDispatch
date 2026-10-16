@@ -13,4 +13,9 @@ Units, incident types, callers, addresses, hazards and incidents are all synthet
 
 ## Rules with sources
 - Stroke destination rule: AHA Mission: Lifeline Stroke EMS triage algorithm (meded.stroke.org). A suspected LVO goes to an EVT-capable center if the extra transport time past the nearest stroke center is at most 30 min and the total at most 45 min (suburban numbers; the urban section gives none). Carried as properties on the stroke DESTINATION_NEEDS edge via `incident_types.csv`.
-- Trauma levels are pending the EMSA designation PDF.
+
+## Trauma levels
+- CA EMSA "Designated Trauma Centers" list, updated 2025-08-25: Santa Clara Valley Medical Center is ACS adult Level I and ACS pediatric Level II; Regional Medical Center of San Jose is a local-designation adult Level II; O'Connor Hospital is not listed. Stored as `levels` in hospitals.csv and as OFFERS {level}.
+
+## Hazard rules
+- `hazard_rules.csv` is synthetic: hazard kinds, crew notes and the capabilities a kind adds to an incident type. Not real fire-code guidance.

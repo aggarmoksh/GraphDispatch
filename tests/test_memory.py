@@ -29,7 +29,7 @@ def test_t1_repeat_address_recalls_hazard_and_prior_incident():
 def test_t2_expired_hazard_not_recalled():
     now = int(time.time())
     first = run_call("caller-001", LABEL, LAT, LON, "cardiac_arrest", now=now)
-    add_hazard(LABEL, "old_hazard", "synthetic", now - 1000, now - 10, incident_id=first["incident_id"], now=now)
+    add_hazard(LABEL, "aggressive_dog", "synthetic", now - 1000, now - 10, incident_id=first["incident_id"], now=now)
     second = run_call("caller-002", LABEL, LAT, LON, "structure_fire", now=now + 60)
     assert second["recalled"]["hazards"] == []
     assert len(second["recalled"]["incidents"]) == 1

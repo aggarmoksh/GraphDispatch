@@ -5,3 +5,5 @@ private/
 __pycache__/
 *.pyc
 cache/
+runs/
+.pytest_cache/

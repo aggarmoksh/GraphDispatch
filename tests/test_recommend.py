@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from graphdispatch.recommend import OutOfArea, recommend  # noqa: E402
 
-SEED, OUT = ROOT / "seed", ROOT / "phase1"
+SEED, OUT = ROOT / "seed", ROOT / "runs"
 SNAP = sorted(SEED.glob("osm_b2_*"))[-1]
 
 SCENARIOS = {

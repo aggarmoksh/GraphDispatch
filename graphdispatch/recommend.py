@@ -21,6 +21,14 @@ def snap(lat, lon, timings=None):
     return node, float(snap_m)
 
 
+def fmt_reason(reason):
+    """'base' -> 'required by incident type'; 'hazard:<id>:<kind>' -> 'added by <kind>'."""
+    out = []
+    for part in str(reason).split(", "):
+        out.append("required by incident type" if part == "base" else f"added by {part.split(':')[-1]}")
+    return ", ".join(out)
+
+
 def _eta(src, dst, timings, cache):
     key = (src, dst)
     if key not in cache:
@@ -39,17 +47,25 @@ def _route(src, dst, timings):
     return list(rows[0][1]) if rows else []
 
 
-def recommend(lat, lon, incident_type):
+def recommend(lat, lon, incident_type, incident_id=None, now=None):
+    """Rank units and pick a hospital. With incident_id, requirements include those added by active hazards."""
     t_start = time.perf_counter()
     timings = []
     cache = {}
     node, snap_m = snap(lat, lon, timings)
 
-    needs = {r[0]: r[1] for r in db.read("required_caps", {"name": incident_type}, timings)}
+    if incident_id:
+        now = int(time.time()) if now is None else int(now)
+        rows = db.read("effective_requirements", {"incident_id": incident_id, "now": now}, timings)
+        needs = {r[0]: int(r[1]) for r in rows}
+        sources = {r[0]: list(r[2]) for r in rows}
+    else:
+        needs = {r[0]: r[1] for r in db.read("required_caps", {"name": incident_type}, timings)}
+        sources = {c: ["base"] for c in needs}
     if not needs:
         raise ValueError(f"unknown incident type: {incident_type}")
     cands, st_node = {}, {}
-    for cap, need, unit_id, station_id, n in db.read("unit_candidates", {"name": incident_type}, timings):
+    for cap, unit_id, station_id, n in db.read("unit_candidates", {"caps": sorted(needs)}, timings):
         eta = _eta(n, node, timings, cache)
         if eta is not None:
             cands.setdefault(cap, []).append((eta, unit_id, station_id))
@@ -64,16 +80,17 @@ def recommend(lat, lon, incident_type):
     used, chosen, unmet = set(), [], []
     for cap in sorted(needs, key=lambda c: (len(cands.get(c, [])), c)):
         picked = 0
+        reason = ", ".join(sources[cap])
         for eta, unit_id, station_id in sorted(cands.get(cap, [])):
             if picked == needs[cap]:
                 break
             if unit_id in used:
                 continue
             used.add(unit_id)
-            chosen.append({"unit_id": unit_id, "capability": cap, "station_id": station_id, "eta_s": eta})
+            chosen.append({"unit_id": unit_id, "capability": cap, "station_id": station_id, "eta_s": eta, "reason": reason})
             picked += 1
         if picked < needs[cap]:
-            unmet.append({"capability": cap, "missing": needs[cap] - picked})
+            unmet.append({"capability": cap, "missing": needs[cap] - picked, "reason": reason})
     chosen.sort(key=lambda u: (u["eta_s"], u["unit_id"]))
 
     routes = [{"leg": u["unit_id"], "nodes": _route(st_node[u["unit_id"]], node, timings)} for u in chosen]
@@ -83,10 +100,12 @@ def recommend(lat, lon, incident_type):
     if dest:
         dest_cap, fb_cap, max_extra, max_total, source = dest[0]
         hosp, h_node = [], {}
-        for osm_id, name, hn, caps in db.read("hospitals", None, timings):
+        for osm_id, name, hn, caps, offers in db.read("hospitals", None, timings):
             eta = _eta(node, hn, timings, cache)
             if eta is not None:
-                hosp.append({"osm_id": osm_id, "name": name, "eta_s": eta, "capabilities": sorted(caps)})
+                levels = {o["cap"]: o["level"] for o in offers if o.get("cap") and o.get("level")}
+                hosp.append({"osm_id": osm_id, "name": name, "eta_s": eta, "capabilities": sorted(caps),
+                             "level": levels.get(dest_cap)})
                 h_node[osm_id] = hn
         hosp.sort(key=lambda h: (h["eta_s"], h["osm_id"]))
         nearest = hosp[0] if hosp else None
@@ -130,6 +149,7 @@ def recommend(lat, lon, incident_type):
         by_query[name] = by_query.get(name, 0.0) + ms
     return {
         "incident": {"lat": lat, "lon": lon, "type": incident_type, "node": node, "snap_m": snap_m, "synthetic_type": True},
+        "requirements": {c: {"need": needs[c], "sources": sources[c]} for c in sorted(needs)},
         "units": chosen, "considered": considered, "unmet": unmet, "hospital": hospital,
         "rule_applied": rule_applied, "routes": routes,
         "timings_ms": {"by_query": by_query, "total": (time.perf_counter() - t_start) * 1000},
@@ -137,18 +157,24 @@ def recommend(lat, lon, incident_type):
     }
 
 
+def hospital_label(h):
+    """Hospital name with its designation level for the needed capability, when present."""
+    return f"{h['name']} (level {h['level']})" if h.get("level") else h["name"]
+
+
 def explain(r):
     lines = [f"Incident {r['incident']['type']} (synthetic type) at ({r['incident']['lat']}, {r['incident']['lon']}), "
              f"snapped {r['incident']['snap_m']:.0f} m to intersection {r['incident']['node']}"]
     lines.append("Units (synthetic):")
     for u in r["units"]:
-        lines.append(f"  {u['unit_id']:5} covers {u['capability']:17} from station {u['station_id']:>2}  ETA {u['eta_s']:.0f} s")
+        lines.append(f"  {u['unit_id']:5} covers {u['capability']:17} from station {u['station_id']:>2}  ETA {u['eta_s']:.0f} s"
+                     f"  [{fmt_reason(u['reason'])}]")
     for m in r["unmet"]:
-        lines.append(f"  UNMET: {m['capability']} short by {m['missing']}")
+        lines.append(f"  UNMET: {m['capability']} ({fmt_reason(m['reason'])})")
     h = r["hospital"]
     if h:
         c, n = h["chosen"], h["nearest"]
-        lines.append(f"Hospital needs {h['required_capability']}: " + (f"{c['name']} (ETA {c['eta_s']:.0f} s)" if c else "none available"))
+        lines.append(f"Hospital needs {h['required_capability']}: " + (f"{hospital_label(c)} (ETA {c['eta_s']:.0f} s)" if c else "none available"))
         if n:
             lines.append(f"  Nearest of any kind: {n['name']} (ETA {n['eta_s']:.0f} s)")
         if h["skipped_reason"]:

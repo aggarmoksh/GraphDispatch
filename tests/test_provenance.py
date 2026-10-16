@@ -130,8 +130,8 @@ def test_latency_why_and_run_call():
 
     res = {"run_call_p50_ms": statistics.median(call_ms), "run_call_p95_ms": pct(call_ms, .95),
            "why_p50_ms": statistics.median(why_ms), "why_p95_ms": pct(why_ms, .95), "n": 20}
-    (ROOT / "phase2").mkdir(exist_ok=True)
-    (ROOT / "phase2" / "latency.json").write_text(json.dumps(res, indent=1))
+    (ROOT / "runs").mkdir(exist_ok=True)
+    (ROOT / "runs" / "latency.json").write_text(json.dumps(res, indent=1))
     print(res)
     assert res["why_p95_ms"] < 50
     assert res["run_call_p95_ms"] < 300

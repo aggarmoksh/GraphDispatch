@@ -27,6 +27,11 @@ Graph Hacks (WeMakeDevs x FalkorDB), Tracks 01 and 02.
 - Stroke destination rule lives on the stroke DESTINATION_NEEDS edge (fallback, max_extra_s, max_total_s, source) and is applied by the pure function rules.stroke_bypass.
 - Timestamps are epoch seconds (int). Address id is the label lowercased with whitespace collapsed. Recall window is 30 days; hazards recalled when valid_from <= now <= valid_to.
 - Acceptance rule: no networkx under graphdispatch/ or scripts/ (tests/ and the phase0 probe are exempt).
+- Memory changes decisions: requirements for an incident are the type's REQUIRES plus ADDS_REQUIREMENT from active hazards at the same Address whose incident_type matches (query effective_requirements, one query). Each CHOSE edge records why the capability was required ('base' or 'hazard:<id>:<kind>'). Unmet capabilities are stored on the Decision (unmet, unmet_reasons); a shortage never crashes a call.
+- Hazard kinds are a closed vocabulary (HazardKind from seed/hazard_rules.csv); add_hazard refuses unknown kinds and lists the allowed ones.
+- Trauma levels come from the CA EMSA Designated Trauma Centers list (updated 2025-08-25) and are stored as OFFERS {level}; they are displayed, never used to choose a hospital.
+- Runtime labels are Incident, Decision, Caller, Address, Hazard. scripts/reset.py is the only reset path: dry run by default, --yes only for sjfd or sjfd_test, deletes runtime labels only and restores seed unit statuses.
+- Tests write outputs to runs/ (gitignored); a full test run must leave git status clean.
 - Hospital capabilities come from seed/hospitals.csv (sources and dates recorded per row); OSM operator tags are not used.
 
 ## Pitfalls
@@ -46,7 +51,7 @@ graph LR
   I1[Intersection osm_id lat lon loc] -->|ROAD travel_s length_m name| I2[Intersection]
   S[Station station_id name agency] -->|LOCATED_AT snap_m| I1
   H[Hospital osm_id name source source_date] -->|LOCATED_AT snap_m| I1
-  H -->|OFFERS| C[Capability name]
+  H -->|OFFERS level| C[Capability name]
   U[Unit unit_id type status synthetic] -->|BASED_AT| S
   U -->|HAS_CAPABILITY| C
   T[IncidentType name synthetic] -->|REQUIRES count| C
@@ -58,14 +63,16 @@ graph LR
   HZ[Hazard hazard_id kind note valid_from valid_to created_at] -->|AT| AD
   HZ -->|REPORTED_IN| INC
   U -->|ASSIGNED_TO| INC
-  D[Decision decision_id ts agent rule_applied] -->|FOR| INC
+  D[Decision decision_id ts agent rule_applied unmet unmet_reasons] -->|FOR| INC
   D -->|CONSIDERED capability eta_s rank| U
-  D -->|CHOSE capability eta_s| U
-  D -->|DESTINATION eta_s| H
+  D -->|CHOSE capability eta_s reason| U
+  D -->|DESTINATION eta_s level| H
   D -->|SKIPPED reason eta_s| H
   D -->|ROUTE leg seq| I1
   D -->|RECALLED| HZ
   D -->|RECALLED| INC
+  HZ -->|OF_KIND| HK[HazardKind name crew_note synthetic]
+  HK -->|ADDS_REQUIREMENT incident_type count| C
 ```
 ASSIGNED_TO (Unit to Incident) is an addition beyond the original spec, so clear() frees only units dispatched to that incident.
 
@@ -77,12 +84,85 @@ ASSIGNED_TO (Unit to Incident) is an addition beyond the original spec, so clear
 - scripts/load.py reads hospital coordinates from data/processed/hospitals_raw.csv (gitignored), so run Phase 0B fetch_pois.py first on a fresh clone.
 - Long multi-file shell heredocs failed once in this shell; write files with the editor tool.
 
+## Phase 3 pitfalls
+- A graph is created as a side effect of select_graph + any query (phase0/probe_procs.py left an empty probe_procs graph).
+- Hazards created before HazardKind existed have no OF_KIND edge and are ignored by effective_requirements.
+- Seed hospitals.csv source text contains commas; the field is quoted.
+
 ## Phase 2 pitfalls
 - ro_query works with CALL algo.SPpaths; use it for all reads.
 - OPTIONAL MATCH + collect({...}) returns one all-null map when nothing matches; filter in Python. UNWIND over an empty list drops all rows, so skip empty writes.
 - record_decision is several write queries (not one transaction); a crash mid-way can leave a partial decision.
 - Test helper queries (wipe_runtime, set_unit_status) live in queries.cypher; drop_graph and wipe are guarded to *_test graphs only.
 - Fresh clone: python scripts/load.py (with GRAPH_NAME set) needs only seed/ and a running FalkorDB.
+
+## QUERIES
+Every named query in graphdispatch/queries.cypher (kept in sync by tests/test_docs.py):
+- `idx_intersection`: Index Intersection.osm_id.
+- `idx_unit`: Index Unit.unit_id.
+- `idx_station`: Index Station.station_id.
+- `idx_hospital`: Index Hospital.osm_id.
+- `idx_capability`: Index Capability.name.
+- `idx_incident_type`: Index IncidentType.name.
+- `idx_incident`: Index Incident.incident_id.
+- `idx_address`: Index Address.address_id.
+- `idx_caller`: Index Caller.caller_id.
+- `idx_hazard`: Index Hazard.hazard_id.
+- `idx_decision`: Index Decision.decision_id.
+- `load_intersections`: Batch-merge intersections with a geo point.
+- `load_roads`: Batch-merge directed ROAD edges.
+- `load_capabilities`: Merge capability vocabulary nodes.
+- `load_stations`: Merge stations.
+- `load_hospitals`: Merge hospitals (matched by osm_id, never by name).
+- `load_offers`: Link hospitals to the capabilities they offer, with an optional designation level.
+- `load_units`: Merge synthetic units and their base station.
+- `load_unit_caps`: Link units to their capabilities.
+- `load_incident_types`: Merge synthetic incident types.
+- `load_requires`: Link incident types to required capabilities with counts.
+- `load_dest_needs`: Link incident types to the destination capability, with optional bypass-rule properties (null props are skipped).
+- `snap_station`: Snap a station to its nearest intersection and store snap_m.
+- `snap_hospital`: Snap a hospital to its nearest intersection and store snap_m.
+- `count_labels`: Node counts per label.
+- `count_rels`: Relationship counts per type.
+- `snap_report`: Snap distances for every station and hospital.
+- `snap_incident`: Nearest intersection to an incident location and the snap distance in meters.
+- `unit_candidates`: Multi-hop: required capabilities to available units, their station and station intersection.
+- `required_caps`: Capabilities (with counts) an incident type requires, including those no available unit has.
+- `dest_capability`: Destination capability and optional fallback rule for an incident type (no row if none).
+- `hospitals`: Every hospital with its intersection, offered capabilities and designation levels.
+- `eta`: Travel time in seconds along the cheapest outgoing path between two intersections via SPpaths.
+- `route`: Cheapest outgoing path between two intersections via SPpaths: weight and ordered node ids.
+- `create_incident`: Create a synthetic incident with its caller, address and nearest intersection.
+- `incident_info`: Incident status, type and address.
+- `recall_incidents`: Earlier incidents at the same address since a cutoff time.
+- `recall_hazards`: Hazards at the incident's address that are valid at the given time, with the kind's crew note.
+- `add_hazard`: Create a hazard of a known kind at an address (address created with label only if missing).
+- `hazard_reported_in`: Link a hazard to the incident it was reported in.
+- `decision_create`: Create a decision node for an incident, with unmet capabilities and their reasons.
+- `decision_considered`: Record candidate units considered, with capability, ETA and rank.
+- `decision_chose`: Record chosen units with the capability they cover, ETA and why the capability was required.
+- `decision_destination`: Record the chosen destination hospital, ETA and designation level.
+- `decision_skipped`: Record hospitals skipped, with reason and ETA.
+- `decision_route`: Record route path nodes per leg in order.
+- `decision_recalled_hazards`: Record hazards surfaced to this decision.
+- `decision_recalled_incidents`: Record earlier incidents surfaced to this decision.
+- `why`: Everything recorded for one decision, in a single query.
+- `decision_units`: Units chosen by a decision with their current status.
+- `dispatch`: All-or-nothing dispatch: assign the chosen units and mark the incident dispatched only if every chosen unit is available.
+- `clear`: Return an incident's assigned units to available and mark the incident cleared.
+- `set_unit_status`: Administrative/test helper: set one unit's status.
+- `wipe_runtime`: Test helper: delete all runtime nodes (incidents, callers, addresses, hazards, decisions).
+- `unit_statuses`: Every unit with its current status.
+- `assigned_to_count`: Number of ASSIGNED_TO relationships (test helper).
+- `idx_hazard_kind`: Index HazardKind.name.
+- `load_hazard_kinds`: Merge synthetic hazard kinds with their crew notes.
+- `load_hazard_adds`: Link hazard kinds to capabilities they add for an incident type.
+- `hazard_kinds`: List allowed hazard kinds.
+- `effective_requirements`: Incident type requirements plus requirements added by active hazards at the incident's address; summed per capability with sources.
+- `runtime_label_counts`: Node counts for runtime labels only (reset dry run).
+- `runtime_rel_counts`: Relationship counts for relationships touching runtime labels (reset dry run).
+- `seed_label_counts`: Node counts for non-runtime (seed) labels.
+- `seed_rel_counts`: Relationship counts for relationships between seed labels only.
 
 ## Anti-features
 - Voice input

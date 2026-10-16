@@ -4,9 +4,13 @@ import time
 import uuid
 
 from . import db
-from .recommend import recommend, snap
+from .recommend import fmt_reason, hospital_label, recommend, snap
 
 RECALL_WINDOW_S = 30 * 86400
+
+
+class UnknownHazardKind(Exception):
+    """add_hazard was given a kind that is not a HazardKind."""
 
 
 class DispatchRefused(Exception):
@@ -36,13 +40,16 @@ def recall(incident_id, now=None):
     now = int(time.time()) if now is None else int(now)
     inc = [dict(incident_id=r[0], type=r[1], created_at=r[2], status=r[3])
            for r in db.read("recall_incidents", {"incident_id": incident_id, "since": now - RECALL_WINDOW_S})]
-    haz = [dict(hazard_id=r[0], kind=r[1], note=r[2], valid_from=r[3], valid_to=r[4])
+    haz = [dict(hazard_id=r[0], kind=r[1], note=r[2], valid_from=r[3], valid_to=r[4], crew_note=r[5])
            for r in db.read("recall_hazards", {"incident_id": incident_id, "now": now})]
     return {"incidents": inc, "hazards": haz}
 
 
 def add_hazard(address_label, kind, note, valid_from, valid_to, incident_id=None, now=None):
     now = int(time.time()) if now is None else int(now)
+    allowed = [r[0] for r in db.read("hazard_kinds")]
+    if kind not in allowed:
+        raise UnknownHazardKind(f"unknown hazard kind {kind!r}; allowed kinds: {', '.join(allowed)}")
     hazard_id = _new_id("haz")
     db.write("add_hazard", {"address_id": address_id(address_label), "label": address_label, "hazard_id": hazard_id,
                             "kind": kind, "note": note, "valid_from": int(valid_from), "valid_to": int(valid_to), "now": now})
@@ -56,14 +63,16 @@ def record_decision(incident_id, rec, recalled=None, now=None):
     recalled = recalled or {"incidents": [], "hazards": []}
     did = _new_id("dec")
     p = {"decision_id": did}
-    db.write("decision_create", {**p, "incident_id": incident_id, "ts": now, "rule_applied": rec["rule_applied"]})
+    db.write("decision_create", {**p, "incident_id": incident_id, "ts": now, "rule_applied": rec["rule_applied"],
+                                    "unmet": [m["capability"] for m in rec["unmet"]],
+                                    "unmet_reasons": [m["reason"] for m in rec["unmet"]]})
     if rec["considered"]:
         db.write("decision_considered", {**p, "rows": rec["considered"]})
     if rec["units"]:
-        db.write("decision_chose", {**p, "rows": [{k: u[k] for k in ("unit_id", "capability", "eta_s")} for u in rec["units"]]})
+        db.write("decision_chose", {**p, "rows": [{k: u[k] for k in ("unit_id", "capability", "eta_s", "reason")} for u in rec["units"]]})
     h = rec["hospital"]
     if h and h["chosen"]:
-        db.write("decision_destination", {**p, "osm_id": h["chosen"]["osm_id"], "eta_s": h["chosen"]["eta_s"]})
+        db.write("decision_destination", {**p, "osm_id": h["chosen"]["osm_id"], "eta_s": h["chosen"]["eta_s"], "level": h["chosen"].get("level")})
     if h and h["skipped"]:
         db.write("decision_skipped", {**p, "rows": [{k: s[k] for k in ("osm_id", "eta_s", "reason")} for s in h["skipped"]]})
     route = [{"leg": r["leg"], "seq": i, "node": n} for r in rec["routes"] for i, n in enumerate(r["nodes"])]
@@ -81,7 +90,8 @@ def why(decision_id):
     rows = db.read("why", {"decision_id": decision_id})
     if not rows:
         raise KeyError(decision_id)
-    (did, ts, agent, rule, inc_id, itype, status, address, considered, chose, dest, skipped, route, rhaz, rinc) = rows[0]
+    (did, ts, agent, rule, inc_id, itype, status, address, considered, chose, dest, skipped, route, rhaz, rinc,
+     unmet, unmet_reasons) = rows[0]
 
     def keep(items, key):
         return [x for x in items if x.get(key) is not None]
@@ -96,6 +106,7 @@ def why(decision_id):
         "route": sorted(keep(route, "leg"), key=lambda x: (x["leg"], x["seq"])),
         "recalled_hazards": keep(rhaz, "hazard_id"),
         "recalled_incidents": keep(rinc, "incident_id"),
+        "unmet": [{"capability": c, "reason": r} for c, r in zip(unmet or [], unmet_reasons or [])],
     }
 
 
@@ -120,7 +131,7 @@ def run_call(caller_id, address_label, lat, lon, type, now=None):
     now = int(time.time()) if now is None else int(now)
     incident_id = create_incident(caller_id, address_label, lat, lon, type, now)
     recalled = recall(incident_id, now)
-    rec = recommend(lat, lon, type)
+    rec = recommend(lat, lon, type, incident_id=incident_id, now=now)
     decision_id = record_decision(incident_id, rec, recalled, now)
     return {"incident_id": incident_id, "decision_id": decision_id, "recalled": recalled, "recommendation": rec}
 
@@ -130,12 +141,14 @@ def explain_why(w):
              f"[{w['incident']['type']}, synthetic] at {w['incident']['address']}, status {w['incident']['status']}",
              f"Rule: {w['rule_applied']}", "Chosen units (synthetic):"]
     for u in w["chose"]:
-        lines.append(f"  {u['unit_id']:5} covers {u['capability']:17} ETA {u['eta_s']:.0f} s")
+        lines.append(f"  {u['unit_id']:5} covers {u['capability']:17} ETA {u['eta_s']:.0f} s  [{fmt_reason(u['reason'])}]")
+    for m in w["unmet"]:
+        lines.append(f"  UNMET: {m['capability']} ({fmt_reason(m['reason'])})")
     for cap in sorted({c["capability"] for c in w["considered"]}):
         cs = [f"{c['unit_id']} {c['eta_s']:.0f}s" for c in w["considered"] if c["capability"] == cap]
         lines.append(f"  considered for {cap}: " + ", ".join(cs))
     if w["destination"]:
-        lines.append(f"Destination: {w['destination']['name']} (ETA {w['destination']['eta_s']:.0f} s)")
+        lines.append(f"Destination: {hospital_label(w['destination'])} (ETA {w['destination']['eta_s']:.0f} s)")
     for s in w["skipped"]:
         lines.append(f"  skipped {s['name']} ({s['eta_s']:.0f} s): {s['reason']}")
     legs = {}
@@ -144,6 +157,8 @@ def explain_why(w):
     lines.append("Route legs (intersections): " + ", ".join(f"{k}={v}" for k, v in sorted(legs.items())))
     for h in w["recalled_hazards"]:
         lines.append(f"Recalled hazard: {h['kind']} - {h['note']}")
+        if h.get("crew_note"):
+            lines.append(f"  Crew note: {h['crew_note']}")
     for i in w["recalled_incidents"]:
         lines.append(f"Recalled earlier incident: {i['incident_id']} ({i['type']})")
     return "\n".join(lines)

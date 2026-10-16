@@ -46,8 +46,8 @@ UNWIND $rows AS r MERGE (s:Station {station_id: r.station_id}) SET s.name = r.na
 -- [load_hospitals] Merge hospitals (matched by osm_id, never by name).
 UNWIND $rows AS r MERGE (h:Hospital {osm_id: r.osm_id}) SET h.name = r.name, h.source = r.source, h.source_date = r.source_date;
 
--- [load_offers] Link hospitals to the capabilities they offer.
-UNWIND $rows AS r MATCH (h:Hospital {osm_id: r.osm_id}), (c:Capability {name: r.cap}) MERGE (h)-[:OFFERS]->(c);
+-- [load_offers] Link hospitals to the capabilities they offer, with an optional designation level.
+UNWIND $rows AS r MATCH (h:Hospital {osm_id: r.osm_id}), (c:Capability {name: r.cap}) MERGE (h)-[o:OFFERS]->(c) SET o.level = r.level;
 
 -- [load_units] Merge synthetic units and their base station.
 UNWIND $rows AS r MATCH (s:Station {station_id: r.station_id}) MERGE (u:Unit {unit_id: r.unit_id}) SET u.type = r.type, u.status = r.status, u.synthetic = true MERGE (u)-[:BASED_AT]->(s);
@@ -82,8 +82,8 @@ MATCH (x)-[l:LOCATED_AT]->(i:Intersection) RETURN labels(x)[0] AS label, coalesc
 -- [snap_incident] Nearest intersection to an incident location and the snap distance in meters.
 MATCH (i:Intersection) WITH i, distance(i.loc, point({latitude: $lat, longitude: $lon})) AS d ORDER BY d LIMIT 1 RETURN i.osm_id AS osm_id, d AS snap_m;
 
--- [unit_candidates] Multi-hop: incident type requirements to available units, their station and station intersection.
-MATCH (t:IncidentType {name: $name})-[q:REQUIRES]->(c:Capability)<-[:HAS_CAPABILITY]-(u:Unit {status: 'available'})-[:BASED_AT]->(s:Station)-[:LOCATED_AT]->(i:Intersection) RETURN c.name AS cap, q.count AS need, u.unit_id AS unit_id, s.station_id AS station_id, i.osm_id AS node ORDER BY cap, unit_id;
+-- [unit_candidates] Multi-hop: required capabilities to available units, their station and station intersection.
+MATCH (c:Capability)<-[:HAS_CAPABILITY]-(u:Unit {status: 'available'})-[:BASED_AT]->(s:Station)-[:LOCATED_AT]->(i:Intersection) WHERE c.name IN $caps RETURN c.name AS cap, u.unit_id AS unit_id, s.station_id AS station_id, i.osm_id AS node ORDER BY cap, unit_id;
 
 -- [required_caps] Capabilities (with counts) an incident type requires, including those no available unit has.
 MATCH (t:IncidentType {name: $name})-[q:REQUIRES]->(c:Capability) RETURN c.name AS cap, q.count AS need ORDER BY cap;
@@ -91,8 +91,8 @@ MATCH (t:IncidentType {name: $name})-[q:REQUIRES]->(c:Capability) RETURN c.name 
 -- [dest_capability] Destination capability and optional fallback rule for an incident type (no row if none).
 MATCH (t:IncidentType {name: $name})-[e:DESTINATION_NEEDS]->(c:Capability) RETURN c.name AS cap, e.fallback AS fallback, e.max_extra_s AS max_extra_s, e.max_total_s AS max_total_s, e.source AS source;
 
--- [hospitals] Every hospital with its intersection and offered capabilities.
-MATCH (h:Hospital)-[:LOCATED_AT]->(i:Intersection) OPTIONAL MATCH (h)-[:OFFERS]->(c:Capability) RETURN h.osm_id AS osm_id, h.name AS name, i.osm_id AS node, collect(c.name) AS caps ORDER BY osm_id;
+-- [hospitals] Every hospital with its intersection, offered capabilities and designation levels.
+MATCH (h:Hospital)-[:LOCATED_AT]->(i:Intersection) OPTIONAL MATCH (h)-[o:OFFERS]->(c:Capability) RETURN h.osm_id AS osm_id, h.name AS name, i.osm_id AS node, collect(c.name) AS caps, collect({cap: c.name, level: o.level}) AS offers ORDER BY osm_id;
 
 -- [eta] Travel time in seconds along the cheapest outgoing path between two intersections via SPpaths.
 MATCH (a:Intersection {osm_id: $src}), (b:Intersection {osm_id: $dst}) CALL algo.SPpaths({sourceNode: a, targetNode: b, relTypes: ['ROAD'], relDirection: 'outgoing', weightProp: 'travel_s', pathCount: 1}) YIELD pathWeight RETURN pathWeight;
@@ -109,26 +109,26 @@ MATCH (inc:Incident {incident_id: $incident_id})-[:AT]->(a:Address) RETURN inc.i
 -- [recall_incidents] Earlier incidents at the same address since a cutoff time.
 MATCH (inc:Incident {incident_id: $incident_id})-[:AT]->(a:Address)<-[:AT]-(p:Incident) WHERE p.incident_id <> $incident_id AND p.created_at < inc.created_at AND p.created_at >= $since RETURN p.incident_id AS incident_id, p.type AS type, p.created_at AS created_at, p.status AS status ORDER BY p.created_at, p.incident_id;
 
--- [recall_hazards] Hazards at the incident's address that are valid at the given time.
-MATCH (inc:Incident {incident_id: $incident_id})-[:AT]->(a:Address)<-[:AT]-(h:Hazard) WHERE h.valid_from <= $now AND $now <= h.valid_to RETURN h.hazard_id AS hazard_id, h.kind AS kind, h.note AS note, h.valid_from AS valid_from, h.valid_to AS valid_to ORDER BY h.created_at, h.hazard_id;
+-- [recall_hazards] Hazards at the incident's address that are valid at the given time, with the kind's crew note.
+MATCH (inc:Incident {incident_id: $incident_id})-[:AT]->(a:Address)<-[:AT]-(h:Hazard) OPTIONAL MATCH (h)-[:OF_KIND]->(k:HazardKind) WITH h, k WHERE h.valid_from <= $now AND $now <= h.valid_to RETURN h.hazard_id AS hazard_id, h.kind AS kind, h.note AS note, h.valid_from AS valid_from, h.valid_to AS valid_to, k.crew_note AS crew_note ORDER BY h.created_at, h.hazard_id;
 
--- [add_hazard] Create a hazard at an address (created if missing, label only).
-MERGE (a:Address {address_id: $address_id}) ON CREATE SET a.label = $label CREATE (h:Hazard {hazard_id: $hazard_id, kind: $kind, note: $note, valid_from: $valid_from, valid_to: $valid_to, created_at: $now}) CREATE (h)-[:AT]->(a) RETURN h.hazard_id;
+-- [add_hazard] Create a hazard of a known kind at an address (address created with label only if missing).
+MATCH (k:HazardKind {name: $kind}) MERGE (a:Address {address_id: $address_id}) ON CREATE SET a.label = $label CREATE (h:Hazard {hazard_id: $hazard_id, kind: $kind, note: $note, valid_from: $valid_from, valid_to: $valid_to, created_at: $now}) CREATE (h)-[:AT]->(a), (h)-[:OF_KIND]->(k) RETURN h.hazard_id;
 
 -- [hazard_reported_in] Link a hazard to the incident it was reported in.
 MATCH (h:Hazard {hazard_id: $hazard_id}), (inc:Incident {incident_id: $incident_id}) CREATE (h)-[:REPORTED_IN]->(inc);
 
--- [decision_create] Create a decision node for an incident.
-MATCH (inc:Incident {incident_id: $incident_id}) CREATE (d:Decision {decision_id: $decision_id, ts: $ts, agent: 'deterministic-v1', rule_applied: $rule_applied}) CREATE (d)-[:FOR]->(inc);
+-- [decision_create] Create a decision node for an incident, with unmet capabilities and their reasons.
+MATCH (inc:Incident {incident_id: $incident_id}) CREATE (d:Decision {decision_id: $decision_id, ts: $ts, agent: 'deterministic-v1', rule_applied: $rule_applied, unmet: $unmet, unmet_reasons: $unmet_reasons}) CREATE (d)-[:FOR]->(inc);
 
 -- [decision_considered] Record candidate units considered, with capability, ETA and rank.
 UNWIND $rows AS r MATCH (d:Decision {decision_id: $decision_id}), (u:Unit {unit_id: r.unit_id}) CREATE (d)-[:CONSIDERED {capability: r.capability, eta_s: r.eta_s, rank: r.rank}]->(u);
 
--- [decision_chose] Record chosen units with the capability they cover and ETA.
-UNWIND $rows AS r MATCH (d:Decision {decision_id: $decision_id}), (u:Unit {unit_id: r.unit_id}) CREATE (d)-[:CHOSE {capability: r.capability, eta_s: r.eta_s}]->(u);
+-- [decision_chose] Record chosen units with the capability they cover, ETA and why the capability was required.
+UNWIND $rows AS r MATCH (d:Decision {decision_id: $decision_id}), (u:Unit {unit_id: r.unit_id}) CREATE (d)-[:CHOSE {capability: r.capability, eta_s: r.eta_s, reason: r.reason}]->(u);
 
--- [decision_destination] Record the chosen destination hospital and ETA.
-MATCH (d:Decision {decision_id: $decision_id}), (h:Hospital {osm_id: $osm_id}) CREATE (d)-[:DESTINATION {eta_s: $eta_s}]->(h);
+-- [decision_destination] Record the chosen destination hospital, ETA and designation level.
+MATCH (d:Decision {decision_id: $decision_id}), (h:Hospital {osm_id: $osm_id}) CREATE (d)-[:DESTINATION {eta_s: $eta_s, level: $level}]->(h);
 
 -- [decision_skipped] Record hospitals skipped, with reason and ETA.
 UNWIND $rows AS r MATCH (d:Decision {decision_id: $decision_id}), (h:Hospital {osm_id: r.osm_id}) CREATE (d)-[:SKIPPED {reason: r.reason, eta_s: r.eta_s}]->(h);
@@ -143,7 +143,7 @@ UNWIND $ids AS id MATCH (d:Decision {decision_id: $decision_id}), (h:Hazard {haz
 UNWIND $ids AS id MATCH (d:Decision {decision_id: $decision_id}), (p:Incident {incident_id: id}) CREATE (d)-[:RECALLED]->(p);
 
 -- [why] Everything recorded for one decision, in a single query.
-MATCH (d:Decision {decision_id: $decision_id})-[:FOR]->(inc:Incident)-[:AT]->(a:Address) OPTIONAL MATCH (d)-[r1:CONSIDERED]->(u1:Unit) WITH d, inc, a, collect({unit_id: u1.unit_id, capability: r1.capability, eta_s: r1.eta_s, rank: r1.rank}) AS considered OPTIONAL MATCH (d)-[r2:CHOSE]->(u2:Unit) WITH d, inc, a, considered, collect({unit_id: u2.unit_id, capability: r2.capability, eta_s: r2.eta_s}) AS chose OPTIONAL MATCH (d)-[r3:DESTINATION]->(h3:Hospital) WITH d, inc, a, considered, chose, collect({osm_id: h3.osm_id, name: h3.name, eta_s: r3.eta_s}) AS destination OPTIONAL MATCH (d)-[r4:SKIPPED]->(h4:Hospital) WITH d, inc, a, considered, chose, destination, collect({osm_id: h4.osm_id, name: h4.name, eta_s: r4.eta_s, reason: r4.reason}) AS skipped OPTIONAL MATCH (d)-[r5:ROUTE]->(i5:Intersection) WITH d, inc, a, considered, chose, destination, skipped, collect({leg: r5.leg, seq: r5.seq, node: i5.osm_id}) AS route OPTIONAL MATCH (d)-[:RECALLED]->(h6:Hazard) WITH d, inc, a, considered, chose, destination, skipped, route, collect({hazard_id: h6.hazard_id, kind: h6.kind, note: h6.note}) AS recalled_hazards OPTIONAL MATCH (d)-[:RECALLED]->(p7:Incident) WITH d, inc, a, considered, chose, destination, skipped, route, recalled_hazards, collect({incident_id: p7.incident_id, type: p7.type}) AS recalled_incidents RETURN d.decision_id AS decision_id, d.ts AS ts, d.agent AS agent, d.rule_applied AS rule_applied, inc.incident_id AS incident_id, inc.type AS type, inc.status AS status, a.label AS address, considered, chose, destination, skipped, route, recalled_hazards, recalled_incidents;
+MATCH (d:Decision {decision_id: $decision_id})-[:FOR]->(inc:Incident)-[:AT]->(a:Address) OPTIONAL MATCH (d)-[r1:CONSIDERED]->(u1:Unit) WITH d, inc, a, collect({unit_id: u1.unit_id, capability: r1.capability, eta_s: r1.eta_s, rank: r1.rank}) AS considered OPTIONAL MATCH (d)-[r2:CHOSE]->(u2:Unit) WITH d, inc, a, considered, collect({unit_id: u2.unit_id, capability: r2.capability, eta_s: r2.eta_s, reason: r2.reason}) AS chose OPTIONAL MATCH (d)-[r3:DESTINATION]->(h3:Hospital) WITH d, inc, a, considered, chose, collect({osm_id: h3.osm_id, name: h3.name, eta_s: r3.eta_s, level: r3.level}) AS destination OPTIONAL MATCH (d)-[r4:SKIPPED]->(h4:Hospital) WITH d, inc, a, considered, chose, destination, collect({osm_id: h4.osm_id, name: h4.name, eta_s: r4.eta_s, reason: r4.reason}) AS skipped OPTIONAL MATCH (d)-[r5:ROUTE]->(i5:Intersection) WITH d, inc, a, considered, chose, destination, skipped, collect({leg: r5.leg, seq: r5.seq, node: i5.osm_id}) AS route OPTIONAL MATCH (d)-[:RECALLED]->(h6:Hazard) OPTIONAL MATCH (h6)-[:OF_KIND]->(k6:HazardKind) WITH d, inc, a, considered, chose, destination, skipped, route, collect({hazard_id: h6.hazard_id, kind: h6.kind, note: h6.note, crew_note: k6.crew_note}) AS recalled_hazards OPTIONAL MATCH (d)-[:RECALLED]->(p7:Incident) WITH d, inc, a, considered, chose, destination, skipped, route, recalled_hazards, collect({incident_id: p7.incident_id, type: p7.type}) AS recalled_incidents RETURN d.decision_id AS decision_id, d.ts AS ts, d.agent AS agent, d.rule_applied AS rule_applied, inc.incident_id AS incident_id, inc.type AS type, inc.status AS status, a.label AS address, considered, chose, destination, skipped, route, recalled_hazards, recalled_incidents, d.unmet AS unmet, d.unmet_reasons AS unmet_reasons;
 
 -- [decision_units] Units chosen by a decision with their current status.
 MATCH (d:Decision {decision_id: $decision_id})-[:CHOSE]->(u:Unit) RETURN u.unit_id AS unit_id, u.status AS status ORDER BY unit_id;
@@ -165,3 +165,30 @@ MATCH (u:Unit) RETURN u.unit_id AS unit_id, u.status AS status ORDER BY unit_id;
 
 -- [assigned_to_count] Number of ASSIGNED_TO relationships (test helper).
 MATCH ()-[r:ASSIGNED_TO]->() RETURN count(r);
+
+-- [idx_hazard_kind] Index HazardKind.name.
+CREATE INDEX FOR (n:HazardKind) ON (n.name);
+
+-- [load_hazard_kinds] Merge synthetic hazard kinds with their crew notes.
+UNWIND $rows AS r MERGE (k:HazardKind {name: r.kind}) SET k.crew_note = r.crew_note, k.synthetic = true;
+
+-- [load_hazard_adds] Link hazard kinds to capabilities they add for an incident type.
+UNWIND $rows AS r MATCH (k:HazardKind {name: r.kind}), (c:Capability {name: r.cap}) MERGE (k)-[a:ADDS_REQUIREMENT {incident_type: r.incident_type}]->(c) SET a.count = r.count;
+
+-- [hazard_kinds] List allowed hazard kinds.
+MATCH (k:HazardKind) RETURN k.name AS name ORDER BY name;
+
+-- [effective_requirements] Incident type requirements plus requirements added by active hazards at the incident's address; summed per capability with sources.
+MATCH (inc:Incident {incident_id: $incident_id})-[:OF_TYPE]->(t:IncidentType) OPTIONAL MATCH (t)-[q:REQUIRES]->(c1:Capability) WITH inc, t, collect({cap: c1.name, need: q.count, source: 'base'}) AS base OPTIONAL MATCH (inc)-[:AT]->(:Address)<-[:AT]-(h:Hazard)-[:OF_KIND]->(k:HazardKind)-[r:ADDS_REQUIREMENT]->(c2:Capability) WHERE h.valid_from <= $now AND $now <= h.valid_to AND r.incident_type = t.name WITH base, collect({cap: c2.name, need: r.count, source: 'hazard:' + h.hazard_id + ':' + k.name}) AS added UNWIND base + added AS x WITH x WHERE x.cap IS NOT NULL RETURN x.cap AS cap, sum(x.need) AS need, collect(x.source) AS sources ORDER BY cap;
+
+-- [runtime_label_counts] Node counts for runtime labels only (reset dry run).
+MATCH (n) WHERE n:Incident OR n:Decision OR n:Caller OR n:Address OR n:Hazard RETURN labels(n)[0] AS label, count(n) AS c ORDER BY label;
+
+-- [runtime_rel_counts] Relationship counts for relationships touching runtime labels (reset dry run).
+MATCH (a)-[r]->(b) WHERE a:Incident OR a:Decision OR a:Caller OR a:Address OR a:Hazard OR b:Incident OR b:Decision OR b:Caller OR b:Address OR b:Hazard RETURN type(r) AS t, count(r) AS c ORDER BY t;
+
+-- [seed_label_counts] Node counts for non-runtime (seed) labels.
+MATCH (n) WHERE NOT (n:Incident OR n:Decision OR n:Caller OR n:Address OR n:Hazard) RETURN labels(n)[0] AS label, count(n) AS c ORDER BY label;
+
+-- [seed_rel_counts] Relationship counts for relationships between seed labels only.
+MATCH (a)-[r]->(b) WHERE NOT (a:Incident OR a:Decision OR a:Caller OR a:Address OR a:Hazard OR b:Incident OR b:Decision OR b:Caller OR b:Address OR b:Hazard) RETURN type(r) AS t, count(r) AS c ORDER BY t;

@@ -1,0 +1,5 @@
+# synthetic
+kind,crew_note,incident_type,adds_capability,count
+oxygen_storage,Stored oxygen accelerates fire; no open flame,structure_fire,hazmat,1
+oxygen_storage,Stored oxygen accelerates fire; no open flame,cardiac_arrest,,0
+aggressive_dog,Animal on premises; stage until secured,,,0

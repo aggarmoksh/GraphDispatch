@@ -1,4 +1,4 @@
-osm_id,name,capabilities,source,source_date,lat,lon
-609630707,Santa Clara Valley Medical Center,emergency;trauma;pediatric_trauma;burn;stroke_primary,scvmc.scvh.org trauma+burn pages; strokeinfo.org,2025-08-01,37.313460719351504,-121.93516057421122
-403207487,Regional Medical Center of San Jose,emergency;trauma;stroke_thrombectomy,ems1.com 2025-05-03; strokeinfo.org,2025-08-01,37.36211938206316,-121.84935708566562
-38899283,O'Connor Hospital,emergency;stroke_primary,strokeinfo.org,2025-08-01,37.32811140166337,-121.93841992325142
+osm_id,name,capabilities,source,source_date,lat,lon,levels
+609630707,Santa Clara Valley Medical Center,emergency;trauma;pediatric_trauma;burn;stroke_primary,"scvmc.scvh.org trauma+burn pages; strokeinfo.org; CA EMSA Designated Trauma Centers, updated 2025-08-25",2025-08-01,37.313460719351504,-121.93516057421122,trauma:I;pediatric_trauma:II
+403207487,Regional Medical Center of San Jose,emergency;trauma;stroke_thrombectomy,"ems1.com 2025-05-03; strokeinfo.org; CA EMSA Designated Trauma Centers, updated 2025-08-25",2025-08-01,37.36211938206316,-121.84935708566562,trauma:II
+38899283,O'Connor Hospital,emergency;stroke_primary,strokeinfo.org,2025-08-01,37.32811140166337,-121.93841992325142,

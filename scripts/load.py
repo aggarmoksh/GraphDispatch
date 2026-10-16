@@ -14,7 +14,7 @@ from graphdispatch import db  # noqa: E402
 SEED = ROOT / "seed"
 B = 500
 INDEXES = ["idx_intersection", "idx_unit", "idx_station", "idx_hospital", "idx_capability", "idx_incident_type",
-           "idx_incident", "idx_address", "idx_caller", "idx_hazard", "idx_decision"]
+           "idx_incident", "idx_address", "idx_caller", "idx_hazard", "idx_decision", "idx_hazard_kind"]
 
 
 def snapshot_dir():
@@ -60,7 +60,9 @@ def load():
     for b in batches(roads):
         db.write("load_roads", {"rows": b})
 
-    hosp = pd.read_csv(SEED / "hospitals.csv", comment="#", dtype={"osm_id": int})
+    hosp = pd.read_csv(SEED / "hospitals.csv", comment="#", dtype={"osm_id": int, "levels": str})
+    hosp["levels"] = hosp["levels"].fillna("")
+    rules = pd.read_csv(SEED / "hazard_rules.csv", comment="#", dtype=str).fillna("")
     stations = pd.read_csv(SEED / "stations.csv", comment="#")
     units = pd.read_csv(SEED / "units.csv", comment="#")
     itypes = pd.read_csv(SEED / "incident_types.csv", comment="#", dtype=str).fillna("")
@@ -74,13 +76,15 @@ def load():
             caps.add(r.destination_capability)
         if r.fallback_capability:
             caps.add(r.fallback_capability)
+    caps.update(c for c in rules.adds_capability if c)
     db.write("load_capabilities", {"names": sorted(caps)})
 
     db.write("load_stations", {"rows": [dict(osm_id=int(r.osm_id), station_id=int(r.station_id), name=r.name, agency=r.agency)
                                         for r in stations.itertuples()]})
     db.write("load_hospitals", {"rows": [dict(osm_id=int(r.osm_id), name=r.name, source=r.source, source_date=r.source_date)
                                          for r in hosp.itertuples()]})
-    db.write("load_offers", {"rows": [dict(osm_id=int(r.osm_id), cap=c) for r in hosp.itertuples() for c in split(r.capabilities)]})
+    db.write("load_offers", {"rows": [dict(osm_id=int(r.osm_id), cap=c, level=dict(x.split(":") for x in split(r.levels)).get(c))
+                                      for r in hosp.itertuples() for c in split(r.capabilities)]})
     db.write("load_units", {"rows": _units()})
     db.write("load_unit_caps", {"rows": [dict(unit_id=r.unit_id, cap=c) for r in units.itertuples() for c in split(r.capabilities)]})
     db.write("load_incident_types", {"names": list(itypes.name)})
@@ -93,6 +97,9 @@ def load():
              max_total_s=int(r.max_total_s) if r.max_total_s else None,
              source=r.rule_source or None)
         for r in itypes.itertuples() if r.destination_capability]})
+    db.write("load_hazard_kinds", {"rows": [dict(kind=k, crew_note=g.crew_note.iloc[0]) for k, g in rules.groupby("kind", sort=True)]})
+    db.write("load_hazard_adds", {"rows": [dict(kind=r.kind, incident_type=r.incident_type, cap=r.adds_capability, count=int(r.count))
+                                           for r in rules.itertuples() if r.adds_capability]})
     for r in stations.itertuples():
         db.write("snap_station", {"id": int(r.station_id), "lat": float(r.lat), "lon": float(r.lon)})
     for r in hosp.itertuples():
