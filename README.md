@@ -4,15 +4,17 @@ Dispatch decision support for emergency calls: every recommendation is a walk th
 
 **This is a hackathon prototype on synthetic data, not a real dispatch system.**
 
+Demo video: [VIDEO LINK]
+
 ## What the graph decides
 
-- **Which units to send, and how fast they get there.** Road travel time is computed inside FalkorDB with `algo.SPpaths` over a directed road graph. The units required for an incident, including units added because of a remembered hazard at the address, come from one query, `effective_requirements`.
+- **Which units to send, and how fast they get there.** Road travel time is computed inside FalkorDB with `algo.SPpaths` over a directed road graph. The units required for an incident, including units added because of a remembered hazard at the address, come from one query, `effective_requirements`. When a road is closed, routing skips it.
 - **Which hospital to take the patient to.** The nearest hospital is often the wrong one, because the needed capability (trauma, burn, clot removal for a stroke) differs by hospital. For strokes, the AHA bypass limits are stored on a graph edge and applied to the real road times; the nearest hospital that was skipped is shown with its reason.
 - **What to remember.** Hazards and earlier incidents at an address change later decisions, and every decision is stored as nodes and edges (units considered, chosen, hospitals skipped, route, memory recalled), so "why?" is answered by one Cypher query.
 
 ## Live demo
 
-**http://3.220.38.68** (synthetic data, plain HTTP, so do not type anything real). Use **Graph only** to run with no AI, or the AI mode for caller text; the AI mode is capped per day and per visitor.
+**https://d445nmo1mzx5s.cloudfront.net** (synthetic data, so do not type anything real). Use **Graph only** to run with no AI, or the AI mode for caller text; the AI mode is capped per day and per visitor.
 
 ![Stroke on the west side: the nearest hospital, O'Connor, is skipped for lack of clot removal, so the patient goes to Regional; unit routes in red, hospital route in blue](docs/img/s1-desktop.png)
 
@@ -50,9 +52,17 @@ What this shows, and what it does not:
 - C had no road network by design; its failures measure what coordinates in text can support, not what a model with a routing tool could do.
 - 24 synthetic scenarios in one small area, one run at temperature 0, 24 Bedrock calls: a demonstration, not a statistical study. The oracle is independent in code and method but shares its rules with the app, so it does not test whether the rules are medically right. The seconds-lost columns were added after the results and are labeled that way in [eval/RESULTS.md](eval/RESULTS.md). Cost of the AI baseline was not verified (tokens only are reported there).
 
+## Road closures (demonstration)
+
+Closing a road retypes its `ROAD` edges to `CLOSED_ROAD`, and routing follows `ROAD` only, so a closed road is skipped with no new algorithm. A decision that was affected records "rerouted around <road>, +m:ss" and whether the chosen unit or hospital changed; the same legs are also computed ignoring the closure, so the cost is measured, not guessed.
+
+The demo preset "Road closed on the stroke route" closes two synthetic segments on the stroke route and takes the same call. The trip to Regional gets 1:24 longer (9:11 becomes 10:34). Station 7 becomes 158 s from the incident and station 10 is 157 s (1.7 s apart before rounding), so E10 and M10 are sent instead of E7 and M7. That unit change is a difference of about one second of travel time, not a large effect. On the live site at most 3 closures are active, and each reopens by itself after 30 minutes.
+
+Closures were not part of the pre-registered evaluation above: this is a demonstration of the mechanism, not evidence of benefit. The numbers come from [docs/phases/phase9/REPORT.md](docs/phases/phase9/REPORT.md) and [docs/phases/phase10/REPORT.md](docs/phases/phase10/REPORT.md).
+
 ## Graph model
 
-Seed data (loaded by `scripts/load.py` from `seed/`): 4,268 nodes and 10,538 relationships (counts in [docs/seed_counts.json](docs/seed_counts.json)). Runtime data (incidents, decisions and so on) is created as calls come in.
+Seed data (loaded by `scripts/load.py` from `seed/`): 4,268 nodes and 10,538 relationships (counts in [docs/seed_counts.json](docs/seed_counts.json)). Runtime data (incidents, decisions, closures and so on) is created as calls come in.
 
 ```mermaid
 graph LR
@@ -79,6 +89,9 @@ graph LR
   D -->|"ROUTE leg, seq"| I1
   D -->|RECALLED| HZ
   D -->|RECALLED| INC
+  I1 -->|"CLOSED_ROAD (a closed ROAD)"| I2
+  CLO["Closure"] -->|AT| I1
+  D -->|"REROUTED_AROUND leg, extra_s"| CLO
 ```
 
 | Seed node label | Count | Seed relationship | Count |
@@ -103,12 +116,13 @@ The product depends on 85 named, parameterized queries in [graphdispatch/queries
 - `recall_hazards` and `recall_incidents`: address memory.
 - `why`: everything recorded for one decision, read back in a single query.
 - `dispatch`: assigns the chosen units only if every one is still available, all or nothing, in one query.
+- `close_road`, `reopen_road` and `route_all`: closing a road retypes its `ROAD` edges to `CLOSED_ROAD` (routing follows `ROAD` only), and `route_all` computes the same path ignoring closures, so a decision can say what a closure cost.
 
 ## Architecture
 
 ```mermaid
 graph TD
-  B["Browser: MapLibre page"] --> API["FastAPI app"]
+  B["Browser: MapLibre page"] -->|HTTPS| CF["CloudFront"] --> API["FastAPI app on EC2"]
   MCP["MCP server (stdio): 6 tools, one write"] --> FN["Graph functions: recommend, memory, provenance, dispatch"]
   API --> FN
   API -->|"caller text, AI mode only, capped"| BR["Amazon Bedrock: Claude Haiku 4.5 intake<br/>forced tool, fills graph enums only, never writes Cypher"]
@@ -118,6 +132,41 @@ graph TD
 ```
 
 The model never writes Cypher. It only fills values from lists that come from the graph (incident types, hazard kinds), and the output is validated in code before anything is written. Dispatch is never done by the model: it is a button a human presses.
+
+## Use the graph tools from Claude Desktop
+
+The same graph operations are available to an MCP client over stdio (`python -m graphdispatch.mcp_server`). They need FalkorDB on `localhost:6379` with the seed loaded, and the package installed once so the module is found:
+
+```bash
+docker run -d -p 6379:6379 falkordb/falkordb
+pip install -r requirements.txt && pip install -e .
+python scripts/load.py          # loads the seed into graph sjfd (idempotent)
+```
+
+Claude Desktop config (`claude_desktop_config.json`, under `mcpServers`), then restart Claude Desktop:
+
+```json
+{
+  "mcpServers": {
+    "graphdispatch": {
+      "command": "<path-to>/graphdispatch/.venv/bin/python",
+      "args": ["-m", "graphdispatch.mcp_server"],
+      "env": { "GRAPH_NAME": "sjfd" }
+    }
+  }
+}
+```
+
+On Windows use `<path-to>\graphdispatch\.venv\Scripts\python.exe`. There are six tools; only one writes, none accepts Cypher and none can dispatch:
+
+- `recommend_units`: ranks the available units and picks a destination hospital for an incident at a location (read-only; creates nothing and dispatches nothing).
+- `recall_address`: active hazards (with crew notes) and incidents in the last 30 days at an address (read-only).
+- `explain_decision`: explains a recorded decision: units, skipped hospitals and the memory it used (read-only).
+- `list_open_incidents`: incidents that are open or dispatched (read-only).
+- `unit_status`: every unit with its status and station (read-only).
+- `report_hazard`: records a hazard at an address for 30 days; the only tool that writes, and it cannot dispatch.
+
+Demo clip: [DEMO CLIP LINK]
 
 ## Setup
 
@@ -142,25 +191,11 @@ pip install -r requirements.txt
 pytest -q
 ```
 
-MCP server (stdio; six tools, only `report_hazard` writes; there is no dispatch tool and no tool that takes Cypher). Claude Desktop config:
-
-```json
-{
-  "mcpServers": {
-    "graphdispatch": {
-      "command": "<path-to>/graphdispatch/.venv/bin/python",
-      "args": ["-m", "graphdispatch.mcp_server"],
-      "env": { "GRAPH_NAME": "sjfd" }
-    }
-  }
-}
-```
-
-On Windows use `<path-to>\graphdispatch\.venv\Scripts\python.exe`. Run the app without Docker: `python -m uvicorn graphdispatch.api:app --port 8000`.
+Run the app without Docker: `python -m uvicorn graphdispatch.api:app --port 8000`.
 
 ## Deployment
 
-One EC2 t3.micro running docker compose, plain HTTP, Bedrock reached through an instance role with a least-privilege policy. The operator checklist is in **[deploy/RUNBOOK.md](deploy/RUNBOOK.md)** and the policy in `deploy/iam-bedrock-policy.json`.
+One EC2 t3.micro running docker compose behind CloudFront (the browser connection is HTTPS), Bedrock reached through an instance role with a least-privilege policy. The operator checklist is in **[deploy/RUNBOOK.md](deploy/RUNBOOK.md)** and the policy in `deploy/iam-bedrock-policy.json`.
 
 ## Data sources and licenses
 
@@ -176,12 +211,12 @@ One EC2 t3.micro running docker compose, plain HTTP, Bedrock reached through an 
 - The AHA stroke numbers (30:00 extra, 45:00 total) are suburban figures applied to an urban area; the urban guidance gives none.
 - The rule numbers shown in the panel are parsed from the sentence the rule code writes, not stored as numbers.
 - The per-visitor rate limiter is in memory in one worker and resets on restart; the daily AI cap is persisted and is the real cost guard.
-- The deployed copy is plain HTTP.
+- Road closures are a demonstration; they were not part of the pre-registered evaluation.
 - The evaluation is 24 synthetic scenarios (see above).
 
 ## AI assistance
 
-Claude Code (Anthropic) wrote the code from phase briefs written by the author. The author made the design decisions, ran the field checks and verified the results, and chose which claims to make. The in-product AI (Claude Haiku 4.5 on Amazon Bedrock) only classifies caller text into values the graph allows. See [AI_DISCLOSURE.md](AI_DISCLOSURE.md).
+Claude Code (Anthropic) wrote the code, tests and docs from phase briefs that were drafted with Claude (chat) acting as an advisor. The author set the goal and scope, approved every phase before it ran, ran the field checks on the real product, did all AWS setup and deployment, and decided what was published. In the product, Amazon Bedrock (Claude Haiku 4.5) only classifies caller text into values the graph allows. See [AI_DISCLOSURE.md](AI_DISCLOSURE.md) for who did what.
 
 ## Friction log
 
@@ -189,14 +224,12 @@ What went wrong and what we did about it, written as it happened: [FRICTION_LOG.
 
 ## Hackathon tracks entered
 
-- **Track 01, Agents That Act on Connected Data:** an AI intake step and an MCP server act on the graph through a small set of validated tools; the one write tool records a hazard, and dispatch stays a human action. There is no free-form agent loop.
+- **Track 01, Agents That Act on Connected Data:** An LLM intake step turns the caller's words into one forced tool call whose values must come from the graph's own lists. The same graph operations are exposed as six typed MCP tools (five read-only, one that records a hazard); an MCP client such as Claude Desktop chooses among them. Dispatch stays a human action, and no tool accepts Cypher.
 - **Track 02, Agent Memory and Coordination:** the graph remembers hazards and earlier incidents per address, and that memory changes which units are sent; every decision and the memory it used are stored and explainable; unit assignment is all or nothing.
 
 ## Next
 
 - Mutual aid between agencies.
-- Road closures in the routing graph.
-- HTTPS.
 
 ## License
 
