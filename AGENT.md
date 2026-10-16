@@ -181,6 +181,12 @@ Run: `python -m uvicorn graphdispatch.api:app --port 8000` (graph from env GRAPH
 - Run: `GRAPH_NAME=sjfd_test python eval/run.py` (A, then B, then C; C makes 24 Bedrock calls, capped at 26). It stops after A if A differs from the oracle. `--skip-c` rehearses A and B with no Bedrock call; `--report-only` rebuilds eval/RESULTS.md from eval/results_raw.json.
 - Outputs: eval/results.csv, eval/results_raw.json, eval/RESULTS.md.
 
+## Publishing (Phase 8)
+- README.md is written for judges; every number in it is traceable to a repo file (eval/RESULTS.md, docs/seed_counts.json, QUERIES.md, seed/DATA.md). tests/test_docs_public.py checks its links, section order and key numbers.
+- QUERIES.md is generated: run `python scripts/gen_queries_md.py` after changing graphdispatch/queries.cypher (it needs FalkorDB, uses only the test graph sjfd_test, and rewrites docs/seed_counts.json). tests/test_docs_public.py fails if QUERIES.md and queries.cypher disagree.
+- eval/seconds_lost.py adds the post-hoc "seconds lost" section to eval/RESULTS.md (labeled not pre-registered); rerun it after `eval/run.py --report-only`, which rebuilds the file without it.
+- This repository is private and has a pre-push hook that always refuses. The public copy is a filtered clone built in a separate folder with git filter-repo; its tools and replace rules are kept outside both repositories.
+
 ## QUERIES
 Every named query in graphdispatch/queries.cypher (kept in sync by tests/test_docs.py):
 - `idx_intersection`: Index Intersection.osm_id.

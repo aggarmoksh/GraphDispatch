@@ -1,0 +1,24 @@
+{
+ "source": "scripts/gen_queries_md.py: a fresh load of seed/ into sjfd_test by scripts/load.py, runtime labels excluded",
+ "nodes": {
+  "Capability": 11,
+  "HazardKind": 2,
+  "Hospital": 3,
+  "IncidentType": 7,
+  "Intersection": 4213,
+  "Station": 10,
+  "Unit": 22
+ },
+ "relationships": {
+  "ADDS_REQUIREMENT": 1,
+  "BASED_AT": 22,
+  "DESTINATION_NEEDS": 5,
+  "HAS_CAPABILITY": 43,
+  "LOCATED_AT": 13,
+  "OFFERS": 10,
+  "REQUIRES": 14,
+  "ROAD": 10430
+ },
+ "nodes_total": 4268,
+ "relationships_total": 10538
+}

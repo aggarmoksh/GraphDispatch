@@ -87,3 +87,16 @@ Incident hazmat_spill at 37.32, -121.91
 - 24 synthetic scenarios and one temperature-0 run are a demonstration, not a statistical study (protocol section 10).
 - A and the oracle share rules written by the same author; the oracle differs in code and method, and its numbers were confirmed independently, but this does not test whether the rules are medically right.
 - C had every fact as text but no road network, by design. B had the same tables with straight-line distances and no memory.
+
+## Added after the results; not pre-registered: seconds lost
+
+Computed from `eval/results_raw.json` and the oracle's road times by `eval/seconds_lost.py` after the results were known; it adds no Bedrock calls and changes none of the numbers above. Per scenario: unit delay is the sum over required capabilities of (road ETA of the chosen unit minus road ETA of the oracle's unit); hospital delay is the same for the destination hospital. Values are signed (the oracle's greedy rule is not globally optimal, so a configuration can be faster on one item). Anything a configuration did not cover (for example a missing hazmat unit) has no time and is counted as uncovered, not added.
+
+| configuration | total seconds lost (24 scenarios) | median per scenario | max in one scenario | scenarios with seconds lost | uncovered items |
+|---|---|---|---|---|---|
+| A GraphDispatch | 0 | 0.0 | 0 | 0 | 0 |
+| B Straight-line | 195 | 0.0 | 103 | 5 | 1 |
+| C LLM with facts as text | 2190 | 20.9 | 325 | 15 | 0 |
+
+Largest single-scenario losses: B R17 (+103 s), S3 (+51 s), S4 (+28 s); C R10 (+325 s), R06 (+297 s), S5 (+282 s). Per-scenario values: `eval/seconds_lost.csv`.
+
