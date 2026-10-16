@@ -1,0 +1,309 @@
+{
+ "seed": 42,
+ "box": {
+  "west": -121.945,
+  "south": 37.3,
+  "east": -121.84,
+  "north": 37.37
+ },
+ "scenarios": [
+  {
+   "id": "S1",
+   "name": "stroke, west side",
+   "incident_type": "stroke",
+   "lat": 37.33,
+   "lon": -121.93,
+   "address": "eval S1",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "S2",
+   "name": "burn, east side",
+   "incident_type": "burn",
+   "lat": 37.36,
+   "lon": -121.855,
+   "address": "eval S2",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "S3",
+   "name": "pediatric trauma",
+   "incident_type": "pediatric_trauma",
+   "lat": 37.31,
+   "lon": -121.86,
+   "address": "eval S3",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "S4",
+   "name": "hazmat spill",
+   "incident_type": "hazmat_spill",
+   "lat": 37.32,
+   "lon": -121.91,
+   "address": "eval S4",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "S5",
+   "name": "structure fire, nearest needed unit busy",
+   "incident_type": "structure_fire",
+   "lat": 37.345,
+   "lon": -121.88,
+   "address": "eval S5",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [
+    "E8"
+   ],
+   "after": null
+  },
+  {
+   "id": "O1",
+   "name": "garage fire with oxygen stored at the address",
+   "incident_type": "structure_fire",
+   "lat": 37.336,
+   "lon": -121.89,
+   "address": "200 Demo St",
+   "hazards": [
+    "oxygen_storage"
+   ],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "O2",
+   "name": "collapse next door, same address, remembers O1",
+   "incident_type": "cardiac_arrest",
+   "lat": 37.336,
+   "lon": -121.89,
+   "address": "200 Demo St",
+   "hazards": [
+    "oxygen_storage"
+   ],
+   "prior_incidents": [
+    "structure_fire"
+   ],
+   "busy_units": [],
+   "after": "O1"
+  },
+  {
+   "id": "R01",
+   "name": "random point 1, structure fire",
+   "incident_type": "structure_fire",
+   "lat": 37.34476,
+   "lon": -121.94237,
+   "address": "eval R01",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "R02",
+   "name": "random point 2, cardiac arrest, nearest needed unit busy",
+   "incident_type": "cardiac_arrest",
+   "lat": 37.31925,
+   "lon": -121.92156,
+   "address": "eval R02",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [
+    "E4"
+   ],
+   "after": null
+  },
+  {
+   "id": "R03",
+   "name": "random point 3, stroke",
+   "incident_type": "stroke",
+   "lat": 37.35155,
+   "lon": -121.87395,
+   "address": "eval R03",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "R04",
+   "name": "random point 4, major trauma",
+   "incident_type": "major_trauma",
+   "lat": 37.36245,
+   "lon": -121.93587,
+   "address": "eval R04",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "R05",
+   "name": "random point 5, pediatric trauma",
+   "incident_type": "pediatric_trauma",
+   "lat": 37.32953,
+   "lon": -121.94187,
+   "address": "eval R05",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "R06",
+   "name": "random point 6, burn",
+   "incident_type": "burn",
+   "lat": 37.3153,
+   "lon": -121.89194,
+   "address": "eval R06",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "R07",
+   "name": "random point 7, hazmat spill",
+   "incident_type": "hazmat_spill",
+   "lat": 37.30186,
+   "lon": -121.92412,
+   "address": "eval R07",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "R08",
+   "name": "random point 8, structure fire",
+   "incident_type": "structure_fire",
+   "lat": 37.34549,
+   "lon": -121.88778,
+   "address": "eval R08",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "R09",
+   "name": "random point 9, cardiac arrest",
+   "incident_type": "cardiac_arrest",
+   "lat": 37.31543,
+   "lon": -121.88313,
+   "address": "eval R09",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "R10",
+   "name": "random point 10, stroke",
+   "incident_type": "stroke",
+   "lat": 37.35666,
+   "lon": -121.94432,
+   "address": "eval R10",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "R11",
+   "name": "random point 11, major trauma",
+   "incident_type": "major_trauma",
+   "lat": 37.35641,
+   "lon": -121.8717,
+   "address": "eval R11",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "R12",
+   "name": "random point 12, pediatric trauma",
+   "incident_type": "pediatric_trauma",
+   "lat": 37.32382,
+   "lon": -121.92867,
+   "address": "eval R12",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "R13",
+   "name": "random point 13, burn",
+   "incident_type": "burn",
+   "lat": 37.367,
+   "lon": -121.90966,
+   "address": "eval R13",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "R14",
+   "name": "random point 14, hazmat spill",
+   "incident_type": "hazmat_spill",
+   "lat": 37.30649,
+   "lon": -121.93484,
+   "address": "eval R14",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "R15",
+   "name": "random point 15, structure fire",
+   "incident_type": "structure_fire",
+   "lat": 37.35932,
+   "lon": -121.88161,
+   "address": "eval R15",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "R16",
+   "name": "random point 16, cardiac arrest",
+   "incident_type": "cardiac_arrest",
+   "lat": 37.3565,
+   "lon": -121.86838,
+   "address": "eval R16",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  },
+  {
+   "id": "R17",
+   "name": "random point 17, stroke",
+   "incident_type": "stroke",
+   "lat": 37.33754,
+   "lon": -121.84282,
+   "address": "eval R17",
+   "hazards": [],
+   "prior_incidents": [],
+   "busy_units": [],
+   "after": null
+  }
+ ]
+}
