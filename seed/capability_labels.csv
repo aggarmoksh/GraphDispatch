@@ -1,0 +1,12 @@
+id,label
+als,Paramedic (ALS)
+transport,Ambulance transport
+fire_suppression,Fire attack
+ladder,Ladder truck
+hazmat,Hazmat team
+emergency,Emergency department
+trauma,Trauma center
+pediatric_trauma,Pediatric trauma center
+burn,Burn center
+stroke_primary,Stroke center
+stroke_thrombectomy,Clot removal (thrombectomy)

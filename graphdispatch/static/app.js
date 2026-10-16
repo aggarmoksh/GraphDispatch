@@ -1,6 +1,7 @@
 import { api } from "/api.js";
-import { initMap, setMeta, setCaller, setIncident, setHazards, drawRoutes, fitTo, ready } from "/map.js";
-import { renderDecision, renderWhy } from "/panel.js";
+import { initMap, setMeta, setCaller, setIncident, setHazards, drawRoutes, fitTo, ready, markStations, markHospitals,
+  stationPoint, hospitalPoint } from "/map.js";
+import { renderDecision, renderWhy, setLabels, typeLabel, skipText } from "/panel.js";
 
 const $ = (id) => document.getElementById(id);
 const state = { meta: null, loc: null, preset: null, history: [], current: -1, busy: false };
@@ -29,7 +30,10 @@ function setBusy(b) {
 
 function setLoc(lat, lon) {
   state.loc = { lat, lon };
-  setCaller(lat, lon);
+  setCaller(lat, lon);          // also removes the previous incident ring: never two location markers
+  drawRoutes([]);
+  markStations([]);
+  markHospitals(null, null);
   const p = $("loc");
   p.replaceChildren(document.createTextNode("Caller location: "));
   const m = document.createElement("span");
@@ -118,14 +122,27 @@ function show(payload) {
   setIncident(inc.lat, inc.lon, `Incident at ${inc.address}`);
 }
 
+/** Mark hospitals and stations for this decision and fit the map to everything it uses. */
+function followOnMap(payload) {
+  const stations = [...new Set(payload.units.map((u) => u.station_id))];
+  const chosen = payload.destination ? payload.destination.osm_id : null;
+  const sk = payload.skipped[0];
+  const skipped = sk ? { osm_id: sk.osm_id, text: (/\(nearest\)/.test(sk.reason) ? "Nearest, skipped: " : "Skipped: ") + skipText(sk.reason).replace(/ \(nearest\)$/, "") } : null;
+  markStations(stations);
+  markHospitals(chosen, skipped);
+  const pts = [[payload.incident.lon, payload.incident.lat], ...stations.map(stationPoint),
+    chosen != null ? hospitalPoint(chosen) : null, sk ? hospitalPoint(sk.osm_id) : null,
+    ...payload.routes.flatMap((r) => r.coords)];
+  fitTo(pts);
+}
+
 async function present(payload, label) {
   state.history.push({ label, payload });
   state.current = state.history.length - 1;
   renderHistory();
   show(payload);
   await drawRoutes(inc_routes(payload));
-  const pts = payload.routes.flatMap((r) => r.coords);
-  fitTo([[payload.incident.lon, payload.incident.lat], ...pts]);
+  followOnMap(payload);
   await refreshHazards();
   $("panel").focus({ preventScroll: true });
   if (window.matchMedia("(min-width: 760px)").matches) $("panel").scrollIntoView({ block: "start" });
@@ -147,6 +164,7 @@ function renderHistory() {
       renderHistory();
       show(h.payload);
       await drawRoutes(inc_routes(h.payload));
+      followOnMap(h.payload);
     });
     box.appendChild(b);
   });
@@ -200,7 +218,7 @@ async function takeCall() {
       if (text.length < 3) throw new Error("Type what the caller says, or switch to Graph only.");
       payload = await api("/api/call", { method: "POST", body: { text, lat: state.loc.lat, lon: state.loc.lon } });
     }
-    await present(payload, `Call ${state.history.length + 1}: ${payload.incident.type.replace(/_/g, " ")}`);
+    await present(payload, `Call ${state.history.length + 1}: ${typeLabel(payload.incident.type)}`);
     setStatus(`Recommendation ready in ${payload.total_ms} ms. Nothing is dispatched until you confirm.`, "ok");
   });
 }
@@ -211,6 +229,7 @@ async function start() {
   try {
     const meta = await api("/api/meta");
     state.meta = meta;
+    setLabels(meta.labels || { capabilities: {}, incident_types: {} });   // an older API without labels still works
     const badge = $("graph-badge");
     badge.textContent = `graph ${meta.graph}: ${Object.values(meta.counts.nodes).reduce((a, b) => a + b, 0).toLocaleString()} nodes`;
     badge.hidden = false;
@@ -218,7 +237,7 @@ async function start() {
     meta.incident_types.forEach((t) => {
       const o = document.createElement("option");
       o.value = t;
-      o.textContent = t.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
+      o.textContent = typeLabel(t);
       sel.appendChild(o);
     });
     await ready;
@@ -232,6 +251,10 @@ async function start() {
   $("graph-only").addEventListener("change", applyMode);
   $("text").addEventListener("input", clearPreset);
   $("why-toggle").addEventListener("click", () => openDrawer($("why").dataset.open !== "true"));
+  const legend = $("legend");
+  const setLegend = (open) => { legend.dataset.open = String(open); $("legend-toggle").setAttribute("aria-expanded", String(open)); };
+  setLegend(!window.matchMedia("(max-width: 759px)").matches);   // collapsed on mobile, open on desktop
+  $("legend-toggle").addEventListener("click", () => setLegend(legend.dataset.open !== "true"));
   applyMode();
 }
 

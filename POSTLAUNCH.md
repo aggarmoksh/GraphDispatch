@@ -24,4 +24,7 @@
 - Persist the Why drawer's selected query in the URL so a decision can be shared.
 - Replace the unit-route overlap (two units on one route draw on top of each other) with offset lines.
 - Mobile: a sticky "Take call" button and a collapsible map.
+- Store the structured stroke rule (extra seconds, limits, total) on the Decision instead of parsing the rule sentence.
+- Let the page switch label language later; labels are English only.
+- On a phone the incident ring and the skipped hospital label can crowd each other; consider a label offset or tap-to-reveal.
 

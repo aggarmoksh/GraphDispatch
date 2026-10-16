@@ -1,0 +1,8 @@
+id,label
+structure_fire,Structure fire
+cardiac_arrest,Cardiac arrest
+stroke,Stroke
+major_trauma,Major trauma
+pediatric_trauma,Pediatric trauma
+burn,Burn
+hazmat_spill,Hazmat spill

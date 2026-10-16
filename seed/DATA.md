@@ -24,3 +24,7 @@ Units, incident types, callers, addresses, hazards and incidents are all synthet
 - MapLibre GL JS 5.24.0 (BSD-3-Clause), vendored in graphdispatch/static/vendor/ from https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js and maplibre-gl.css, with LICENSE.txt from https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/LICENSE.txt (exact version resolved and the file header confirms 5.24.0).
 - Map style and tiles loaded at runtime: https://tiles.openfreemap.org/styles/positron (HTTP 200, loaded in the browser check). Attribution shown on the map and in the footer: Map data (c) OpenStreetMap contributors (ODbL); tiles by OpenFreeMap.
 - Fonts loaded at runtime from Google Fonts (SIL Open Font License): Atkinson Hyperlegible Next and Atkinson Hyperlegible Mono.
+
+## Display labels (Phase 5B)
+- `capability_labels.csv` and `incident_type_labels.csv` map ids to plain-language names for the page. They are display text only and change no decision.
+

@@ -1,4 +1,5 @@
 // Decision panel and Why drawer. All server text is inserted with textContent, never as HTML.
+// The panel speaks plain language (labels, m:ss); the Why drawer keeps raw ids, seconds and Cypher.
 const KW = new Set(["MATCH", "OPTIONAL", "WHERE", "WITH", "RETURN", "CALL", "YIELD", "ORDER", "BY", "UNWIND", "AS", "LIMIT",
   "AND", "OR", "NOT", "IN", "IS", "NULL", "CASE", "WHEN", "THEN", "ELSE", "END", "DISTINCT", "SET", "MERGE", "CREATE", "ON", "DETACH", "DELETE"]);
 
@@ -14,15 +15,36 @@ export const QUERY_INFO = {
   why: "Everything recorded for this decision, read back in one query.",
 };
 
+// ---------------------------------------------------------------- plain-language helpers (exported for the map and app)
+let LABELS = { capabilities: {}, incident_types: {} };
+export const setLabels = (l) => { LABELS = l; };
+const sentence = (s) => { const t = String(s).replace(/_/g, " "); return t.charAt(0).toUpperCase() + t.slice(1); };
+export const capLabel = (id) => LABELS.capabilities[id] || sentence(id);
+export const typeLabel = (id) => LABELS.incident_types[id] || sentence(id);
+export const hazardLabel = (id) => sentence(id);
+/** Short noun phrase, e.g. "Clot removal (thrombectomy)" -> "clot removal". */
+export const capShort = (id) => capLabel(id).replace(/\s*\(.*\)\s*$/, "").toLowerCase();
+/** "Regional Medical Center of San Jose" -> "Regional"; "O'Connor Hospital" -> "O'Connor". */
+export const shortName = (n) => n.replace(/\s+(Medical Center|Hospital)\b.*$/, "");
+/** Seconds to m:ss (551 -> 9:11). */
+export const mmss = (s) => { const t = Math.round(s); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`; };
+/** Plain reason a hospital was skipped, from the recorded reason text. */
+export function skipText(reason) {
+  const m = /lacks (\w+)/.exec(reason);
+  if (m) return `no ${capShort(m[1])}` + (/\(nearest\)/.test(reason) ? " (nearest)" : "");
+  return "too far under the stroke guidance limit";
+}
+/** Reason text for a unit's requirement: "required by incident type" or "added by oxygen storage". */
+export function whyRequired(reasonText) {
+  return reasonText.replace(/added by (\w+)/g, (_, k) => `added by ${hazardLabel(k).toLowerCase()}`);
+}
+
 function el(tag, cls, text) {
   const e = document.createElement(tag);
   if (cls) e.className = cls;
   if (text != null) e.textContent = text;
   return e;
 }
-
-const human = (s) => { const t = String(s).replace(/_/g, " "); return t.charAt(0).toUpperCase() + t.slice(1); };
-const secs = (n) => `${Math.round(n)} s`;
 
 function qbutton(text, query, ctx, cls = "") {
   const b = el("button", "qline " + cls, text);
@@ -49,17 +71,41 @@ export function highlight(cypher) {
   return pre;
 }
 
+/** Rule sentence built from the rule numbers. Returns [text, sourceLine|null]. */
+export function ruleText(p) {
+  const r = p.rule || { kind: "other", text: p.rule_applied };
+  const lim = (s) => mmss(s);
+  switch (r.kind) {
+    case "bypass_used":
+      return [r.extra > 0
+        ? `${shortName(r.capable)} is ${mmss(r.extra)} farther than ${shortName(r.fallback)}. AHA stroke guidance allows up to ${lim(r.max_extra)} extra to reach ${capShort("stroke_thrombectomy")}, so the patient goes to ${shortName(r.capable)}.`
+        : `${shortName(r.capable)} is no farther than ${shortName(r.fallback)} and offers ${capShort("stroke_thrombectomy")}, so the patient goes to ${shortName(r.capable)}.`, r.source];
+    case "bypass_declined_extra":
+      return [`${shortName(r.capable)} is ${mmss(r.extra)} farther than ${shortName(r.fallback)}. AHA stroke guidance allows up to ${lim(r.max_extra)} extra, so the patient goes to ${shortName(r.fallback)}.`, r.source];
+    case "bypass_declined_total":
+      return [`${shortName(r.capable)} would take ${mmss(r.total)} in total, over the ${lim(r.max_total)} limit, so the patient goes to ${shortName(r.fallback)}.`, r.source];
+    case "fastest":
+      return [`Closest hospital with ${capShort(r.capability)}: ${shortName(r.hospital)}, ${mmss(r.eta)} away.`, null];
+    case "no_destination":
+      return ["No hospital is needed for this incident type.", null];
+    case "none_offer":
+      return [`No hospital offers ${capShort(r.capability)}.`, null];
+    default:
+      return [r.text, null];
+  }
+}
+
 export function renderDecision(root, p, ctx) {
   root.replaceChildren();
   const inc = p.incident;
   const where = inc.address.startsWith("device@") ? `caller location ${inc.address.slice(7).replace(",", ", ")}` : inc.address;
-  root.appendChild(el("p", "dsum", `${human(inc.type)} at ${where}`));
+  root.appendChild(el("p", "dsum", `${typeLabel(inc.type)} at ${where}`));
   root.appendChild(el("p", "sub", `Status: ${inc.status}. Synthetic incident ${inc.incident_id}.`));
 
   if (p.classification) {
     const c = p.classification;
-    const hz = c.hazards.length ? c.hazards.map(human).join(", ").toLowerCase() : "none";
-    root.appendChild(el("p", "note", `The model read this call as ${c.incident_type.replace(/_/g, " ")}; hazards the caller reported: ${hz}.`
+    const hz = c.hazards.length ? c.hazards.map((h) => hazardLabel(h).toLowerCase()).join(", ") : "none";
+    root.appendChild(el("p", "note", `The model read this call as ${typeLabel(c.incident_type).toLowerCase()}; hazards the caller reported: ${hz}.`
       + (c.model_note ? ` Model note: ${c.model_note}` : "")));
   }
 
@@ -69,14 +115,14 @@ export function renderDecision(root, p, ctx) {
   if (p.units.length) {
     const t = el("table", "units");
     const head = el("tr");
-    ["Unit", "Covers", "ETA", "Why required"].forEach((h) => head.appendChild(el("th", null, h)));
+    ["Unit", "Covers", "Time", "Why required"].forEach((h) => head.appendChild(el("th", null, h)));
     t.appendChild(head);
     p.units.forEach((u) => {
       const r = el("tr");
-      const c1 = el("td"); const b1 = qbutton(u.unit_id, "unit_candidates", ctx, "mono"); c1.appendChild(b1);
-      const c2 = el("td"); c2.appendChild(qbutton(u.capability.replace(/_/g, " "), "unit_candidates", ctx));
-      const c3 = el("td"); c3.appendChild(qbutton(secs(u.eta_s), "eta", ctx, "mono"));
-      const c4 = el("td"); c4.appendChild(qbutton(u.reason_text, "effective_requirements", ctx));
+      const c1 = el("td"); c1.appendChild(qbutton(u.unit_id, "unit_candidates", ctx, "mono"));
+      const c2 = el("td"); c2.appendChild(qbutton(capLabel(u.capability), "unit_candidates", ctx));
+      const c3 = el("td"); c3.appendChild(qbutton(mmss(u.eta_s), "eta", ctx, "mono"));
+      const c4 = el("td"); c4.appendChild(qbutton(whyRequired(u.reason_text), "effective_requirements", ctx));
       r.append(c1, c2, c3, c4);
       t.appendChild(r);
     });
@@ -86,7 +132,7 @@ export function renderDecision(root, p, ctx) {
   }
   p.unmet.forEach((m) => {
     const line = el("p", "note");
-    line.appendChild(qbutton(`UNMET: ${m.capability.replace(/_/g, " ")} (${m.reason_text}). No available unit has it.`, "effective_requirements", ctx, "block unmet"));
+    line.appendChild(qbutton(`UNMET: ${capLabel(m.capability)} (${whyRequired(m.reason_text)}). No available unit has it.`, "effective_requirements", ctx, "block unmet"));
     us.appendChild(line);
   });
   root.appendChild(us);
@@ -97,12 +143,12 @@ export function renderDecision(root, p, ctx) {
   if (p.destination) {
     const d = p.destination;
     const lvl = d.level ? `, level ${d.level}` : "";
-    hs.appendChild(qbutton(`${d.name}${lvl}, ETA ${secs(d.eta_s)}`, "hospitals", ctx, "block"));
-    p.skipped.forEach((s) => hs.appendChild(qbutton(`Skipped ${s.name} (${secs(s.eta_s)}): ${s.reason}`, "hospitals", ctx, "block")));
-    hs.appendChild(qbutton(`Rule: ${p.rule_applied}`, "dest_capability", ctx, "block"));
-  } else {
-    hs.appendChild(qbutton(p.rule_applied.startsWith("no destination") ? "No hospital is needed for this incident type." : p.rule_applied, "dest_capability", ctx, "block"));
+    hs.appendChild(qbutton(`${d.name}${lvl}, ${mmss(d.eta_s)} away`, "hospitals", ctx, "block"));
+    p.skipped.forEach((s) => hs.appendChild(qbutton(`${s.name}, ${mmss(s.eta_s)} away: ${skipText(s.reason)}`, "hospitals", ctx, "block skip")));
   }
+  const [rule, source] = ruleText(p);
+  hs.appendChild(qbutton(rule, "dest_capability", ctx, "block rule"));
+  if (source) hs.appendChild(el("p", "source", `Source: ${source}`));
   root.appendChild(hs);
 
   // memory
@@ -110,11 +156,11 @@ export function renderDecision(root, p, ctx) {
     const ms = el("div", "sect hazline");
     ms.appendChild(el("h3", null, "Memory of this address"));
     p.recalled_hazard_groups.forEach((g) => {
-      const head = g.count > 1 ? `${human(g.kind)} x${g.count}` : human(g.kind);
+      const head = g.count > 1 ? `${hazardLabel(g.kind)} x${g.count}` : hazardLabel(g.kind);
       ms.appendChild(qbutton(`${head}: ${g.notes.filter(Boolean).join("; ")}`, "recall_hazards", ctx, "block"));
       if (g.crew_note) ms.appendChild(qbutton(`Crew note: ${g.crew_note}`, "recall_hazards", ctx, "block"));
     });
-    p.recalled_incidents.forEach((i) => ms.appendChild(qbutton(`Earlier incident here: ${i.type.replace(/_/g, " ")} (${i.incident_id})`, "recall_incidents", ctx, "block")));
+    p.recalled_incidents.forEach((i) => ms.appendChild(qbutton(`Earlier incident here: ${typeLabel(i.type).toLowerCase()} (${i.incident_id})`, "recall_incidents", ctx, "block")));
     root.appendChild(ms);
   }
 
@@ -150,6 +196,9 @@ export function renderWhy(body, p, name) {
     });
     if (runs.length > 12) ul.appendChild(el("li", null, `and ${runs.length - 12} more runs`));
     left.appendChild(ul);
+  }
+  if (name === "dest_capability" || name === "hospitals") {
+    left.appendChild(el("p", "sub", `Full rule text recorded for this decision: ${p.rule_applied}`));
   }
   const right = el("div");
   const sum = p.queries.reduce((a, x) => a + x.ms, 0);

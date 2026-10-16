@@ -1,9 +1,13 @@
 // Map layer: stations, hospitals, hazards, incident pin, routes. maplibregl is a global (vendored UMD build).
+import { capLabel, shortName } from "/panel.js";
+
 const STYLE = "https://tiles.openfreemap.org/styles/positron";
 const BOUNDS = [[-121.945, 37.30], [-121.84, 37.37]];
 
-let map, popup, meta;
+let map, popup;
 const markers = { caller: null, incident: null, hazards: [] };
+const stationEls = new Map();   // station_id -> { marker, el }
+const hospitalEls = new Map();  // osm_id -> { marker, el, label }
 let readyResolve;
 export const ready = new Promise((r) => { readyResolve = r; });
 
@@ -17,7 +21,7 @@ function el(tag, cls, text) {
 function popupFor(lngLat, lines) {
   if (popup) popup.remove();
   const box = el("div");
-  lines.forEach((l, i) => box.appendChild(el("p", null, l)));
+  lines.forEach((l) => box.appendChild(el("p", null, l)));
   popup = new maplibregl.Popup({ offset: 14, maxWidth: "260px" }).setLngLat(lngLat).setDOMContent(box).addTo(map);
 }
 
@@ -34,6 +38,7 @@ export function initMap(onClick) {
     container: "map", style: STYLE, bounds: BOUNDS, fitBoundsOptions: { padding: 20 },
     attributionControl: false, dragRotate: false, pitchWithRotate: false,
   });
+  window.__gdMap = map; // read by the visual check
   map.touchZoomRotate.disableRotation();
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
   map.addControl(new maplibregl.AttributionControl({ compact: false,
@@ -54,7 +59,6 @@ export function initMap(onClick) {
 }
 
 export function setMeta(m) {
-  meta = m;
   const byStation = {};
   m.units.forEach((u) => (byStation[u.station_id] ||= []).push(u.unit_id));
   m.stations.forEach((s) => {
@@ -63,17 +67,51 @@ export function setMeta(m) {
       ev.stopPropagation();
       popupFor([s.lon, s.lat], [`Station ${s.station_id} (${s.agency.toUpperCase()})`, "Units (synthetic): " + (byStation[s.station_id] || []).join(", ")]);
     });
-    new maplibregl.Marker({ element: b }).setLngLat([s.lon, s.lat]).addTo(map);
+    const marker = new maplibregl.Marker({ element: b }).setLngLat([s.lon, s.lat]).addTo(map);
+    stationEls.set(s.station_id, { marker, el: b, lat: s.lat, lon: s.lon });
   });
   m.hospitals.forEach((h) => {
-    const lv = Object.entries(h.levels).map(([c, l]) => `${c.replace(/_/g, " ")} level ${l}`).join(", ");
-    const b = button("hosp", `${h.name}. ${h.capabilities.length} capabilities${lv ? ". " + lv : ""}`, "H");
+    const caps = h.capabilities.map(capLabel);
+    const lv = Object.entries(h.levels).map(([c, l]) => `${capLabel(c)}, level ${l}`).join("; ");
+    const b = button("hosp", `${h.name}. Offers: ${caps.join(", ")}${lv ? ". Designations: " + lv : ""}`, "H");
+    const label = el("span", "mklabel");
+    label.hidden = true;
+    b.appendChild(label);
     b.addEventListener("click", (ev) => {
       ev.stopPropagation();
-      popupFor([h.lon, h.lat], [h.name, "Offers: " + h.capabilities.map((c) => c.replace(/_/g, " ")).join(", "),
-        lv ? "Designations: " + lv : "No trauma designation listed"]);
+      popupFor([h.lon, h.lat], [h.name, "Offers: " + caps.join(", "), lv ? "Designations: " + lv : "No trauma designation listed"]);
     });
-    new maplibregl.Marker({ element: b }).setLngLat([h.lon, h.lat]).addTo(map);
+    const marker = new maplibregl.Marker({ element: b }).setLngLat([h.lon, h.lat]).addTo(map);
+    hospitalEls.set(h.osm_id, { marker, el: b, label, lat: h.lat, lon: h.lon, name: h.name });
+  });
+}
+
+export const stationPoint = (id) => { const s = stationEls.get(id); return s ? [s.lon, s.lat] : null; };
+export const hospitalPoint = (id) => { const h = hospitalEls.get(id); return h ? [h.lon, h.lat] : null; };
+
+/** Mark the stations used by the shown decision. */
+export function markStations(usedIds) {
+  stationEls.forEach((s, id) => s.el.classList.toggle("used", usedIds.includes(id)));
+}
+
+/** Chosen hospital gets a filled marker; the nearest skipped hospital a grey ring and a short label. */
+export function markHospitals(chosenId, skipped) {
+  hospitalEls.forEach((h, id) => {
+    h.el.classList.toggle("chosen", id === chosenId);
+    h.el.classList.toggle("skipped", !!skipped && id === skipped.osm_id);
+    h.label.hidden = !(skipped && id === skipped.osm_id);
+    h.label.textContent = skipped && id === skipped.osm_id ? skipped.text : "";
+    h.label.classList.remove("left");
+  });
+}
+
+/** Put a hospital label on the side that stays inside the map (call after the view has moved). */
+export function placeLabels() {
+  const w = map.getContainer().clientWidth;
+  hospitalEls.forEach((h) => {
+    if (h.label.hidden) return;
+    const x = map.project([h.lon, h.lat]).x;
+    h.label.classList.toggle("left", x + 30 + h.label.offsetWidth > w - 8);
   });
 }
 
@@ -87,8 +125,15 @@ function placeMarker(slot, cls, label, lat, lon) {
   markers[slot] = new maplibregl.Marker({ element: d }).setLngLat([lon, lat]).addTo(map);
 }
 
-export const setCaller = (lat, lon) => placeMarker("caller", "caller", "Caller location", lat, lon);
-export const setIncident = (lat, lon, label) => placeMarker("incident", "pin", label || "Incident", lat, lon);
+// One location marker at a time: the caller pin before a decision, the incident ring while a decision is shown.
+export function setCaller(lat, lon) {
+  if (lat != null) placeMarker("incident", "pin", "", null, null);
+  placeMarker("caller", "caller", "Caller location", lat, lon);
+}
+export function setIncident(lat, lon, label) {
+  if (lat != null) placeMarker("caller", "caller", "", null, null);
+  placeMarker("incident", "pin", label || "Incident", lat, lon);
+}
 
 export function setHazards(list) {
   markers.hazards.forEach((m) => m.remove());
@@ -111,10 +156,16 @@ export async function drawRoutes(routes) {
   }
 }
 
+/** Fit the view to the decision with padding that keeps everything clear of the legend and map controls. */
 export function fitTo(points) {
   const pts = points.filter(Boolean);
   if (!pts.length) return;
+  const mobile = window.matchMedia("(max-width: 759px)").matches;
+  const padding = mobile ? { top: 56, left: 64, right: 56, bottom: 48 } : { top: 56, left: 210, right: 72, bottom: 52 };
   const b = new maplibregl.LngLatBounds();
   pts.forEach((p) => b.extend(p));
-  map.fitBounds(b, { padding: { top: 50, bottom: 60, left: 50, right: 50 }, maxZoom: 14, duration: 0 });
+  map.resize();
+  map.fitBounds(b, { padding, maxZoom: 15, duration: 0 });
+  window.__gdLastFit = pts;
+  placeLabels();
 }

@@ -4,8 +4,10 @@ Run: python -m uvicorn graphdispatch.api:app --port 8000
 Only /api/call uses the LLM (Bedrock); it is capped server-side (daily and per client). Every other path is graph-only.
 Every decision response carries the real Cypher of each query the request ran (the page's Why drawer shows it).
 """
+import csv
 import json
 import os
+import re
 import threading
 import time
 import uuid
@@ -95,6 +97,46 @@ def check_and_count_llm_call(request: Request):
         DAILY_FILE.write_text(json.dumps(data), encoding="utf-8")
 
 
+# ---------------------------------------------------------------- labels and rule parsing
+_LABELS = None
+
+
+def labels():
+    """Plain-language labels from seed/capability_labels.csv and seed/incident_type_labels.csv."""
+    global _LABELS
+    if _LABELS is None:
+        def load(name):
+            with (ROOT / "seed" / name).open(newline="", encoding="utf-8") as f:
+                return {r["id"]: r["label"] for r in csv.DictReader(f)}
+        _LABELS = {"capabilities": load("capability_labels.csv"), "incident_types": load("incident_type_labels.csv")}
+    return _LABELS
+
+
+_RULE_PATTERNS = [
+    ("bypass_used", re.compile(r"^(?P<capable>.+?) (?P<extra>[+-]\d+) s over (?P<fallback>.+?), within (?P<max_extra>\d+) s AHA bypass limit "
+                               r"\(total (?P<total>\d+) s <= (?P<max_total>\d+) s; (?P<source>.+)\)$")),
+    ("bypass_declined_extra", re.compile(r"^(?P<capable>.+?) (?P<extra>[+-]\d+) s over (?P<fallback>.+?) exceeds (?P<max_extra>\d+) s AHA bypass limit; "
+                                         r"routed to (?P=fallback) \((?P<eta>\d+) s; (?P<source>.+)\)$")),
+    ("bypass_declined_total", re.compile(r"^(?P<capable>.+?) total (?P<total>\d+) s exceeds (?P<max_total>\d+) s limit; "
+                                         r"routed to (?P<fallback>.+?) \((?P<eta>\d+) s; (?P<source>.+)\)$")),
+    ("fastest", re.compile(r"^fastest hospital offering (?P<capability>\w+): (?P<hospital>.+) \((?P<eta>\d+) s\)$")),
+    ("no_destination", re.compile(r"^no destination hospital required for (?P<incident_type>\w+)$")),
+    ("none_offer", re.compile(r"^no hospital offers (?P<capability>\w+)$")),
+]
+
+
+def parse_rule(text):
+    """Turn the sentence rules.py / recommend.py write into numbers the page can render in plain language."""
+    for kind, pat in _RULE_PATTERNS:
+        m = pat.match(text)
+        if m:
+            out = {"kind": kind}
+            for k, v in m.groupdict().items():
+                out[k] = int(v) if k in ("extra", "max_extra", "total", "max_total", "eta") else v
+            return out
+    return {"kind": "other", "text": text}
+
+
 # ---------------------------------------------------------------- payload
 def _with_cypher(recorded):
     qs = db.queries()
@@ -121,6 +163,7 @@ def decision_payload(decision_id, classification=None):
               for leg, rows in sorted(legs.items())]
     return {
         "decision_id": decision_id, "agent": w["agent"], "incident": inc, "rule_applied": w["rule_applied"],
+        "rule": parse_rule(w["rule_applied"]),
         "units": [{**u, "reason_text": fmt_reason(u["reason"])} for u in w["chose"]],
         "considered": w["considered"],
         "unmet": [{**m, "reason_text": fmt_reason(m["reason"])} for m in w["unmet"]],
@@ -158,7 +201,7 @@ def health():
 
 @app.get("/api/meta")
 def meta():
-    labels = {r[0]: r[1] for r in db.read("count_labels")}
+    node_counts = {r[0]: r[1] for r in db.read("count_labels")}
     rels = {r[0]: r[1] for r in db.read("count_rels")}
     hospitals = []
     for osm_id, name, lat, lon, offers in db.read("meta_hospitals"):
@@ -167,13 +210,14 @@ def meta():
                           "capabilities": sorted(o["cap"] for o in offers),
                           "levels": {o["cap"]: o["level"] for o in offers if o.get("level")}})
     return {
-        "graph": db.graph_name(), "counts": {"nodes": labels, "relationships": rels},
+        "graph": db.graph_name(), "counts": {"nodes": node_counts, "relationships": rels},
         "incident_types": [r[0] for r in db.read("incident_type_names")],
         "hazard_kinds": [r[0] for r in db.read("hazard_kinds")],
         "stations": [{"station_id": r[0], "name": r[1], "agency": r[2], "lat": r[3], "lon": r[4]} for r in db.read("meta_stations")],
         "hospitals": hospitals,
         "units": [{"unit_id": r[0], "type": r[1], "status": r[2], "station_id": r[3], "synthetic": True}
                   for r in db.read("unit_status_detail")],
+        "labels": labels(),
         "llm": {"daily_cap": int(os.getenv("LLM_DAILY_CAP", "150")), "per_ip": f"{IP_LIMIT} per {IP_WINDOW_S // 60} minutes"},
     }
 

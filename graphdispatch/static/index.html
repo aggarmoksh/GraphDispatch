@@ -54,13 +54,18 @@
 
     <div class="mapwrap">
       <div id="map" aria-label="Map of downtown San Jose with stations, hospitals, incident and routes"></div>
-      <ul class="legend" aria-label="Map key">
-        <li><span class="key st"></span>Fire station</li>
-        <li><span class="key hosp">H</span>Hospital</li>
-        <li><span class="key haz"></span>Hazard</li>
-        <li><span class="key line fire"></span>Unit route</li>
-        <li><span class="key line med"></span>Hospital route</li>
-      </ul>
+      <div class="legend" id="legend" data-open="true">
+        <button type="button" id="legend-toggle" aria-expanded="true" aria-controls="legend-list">Key</button>
+        <ul id="legend-list" aria-label="Map key">
+          <li><span class="key st"></span>Fire station</li>
+          <li><span class="key hosp">H</span>Hospital</li>
+          <li><span class="key hosp chosen">H</span>Chosen hospital</li>
+          <li><span class="key ring"></span>Nearest, skipped</li>
+          <li><span class="key haz"></span>Hazard</li>
+          <li><span class="key line fire"></span>Unit route</li>
+          <li><span class="key line med"></span>Hospital route</li>
+        </ul>
+      </div>
     </div>
   </main>
 

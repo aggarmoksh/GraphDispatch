@@ -9,3 +9,4 @@ Built with Claude Code as the coding assistant; design decisions and verificatio
 - 2026-10-15 Phase 4A: Amazon Bedrock access and intake classification probe (forced tool call, graph-derived enums).
 - 2026-10-16 Phase 4B: duplicate-hazard fix, installable package, LLM intake into the graph pipeline, address normalization, MCP server.
 - 2026-10-16 Phase 5: FastAPI API, static MapLibre page with a Cypher-showing Why drawer, server-side LLM caps, Playwright visual check.
+- 2026-10-16 Phase 5B: UI polish for the demo (skipped hospital on the map, plain labels, m:ss, map follows the decision).
