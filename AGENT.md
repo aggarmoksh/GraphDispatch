@@ -32,7 +32,7 @@ Graph Hacks (WeMakeDevs x FalkorDB), Tracks 01 and 02.
 - Address ids are normalized (lowercase, punctuation stripped, whitespace collapsed, last word abbreviated via seed/address_suffixes.csv), so "200 Demo Street" and "200 demo st." are one Address. Device-derived labels are "device@<lat 4dp>,<lon 4dp>".
 - LLM intake (graphdispatch/intake.py): text -> one forced classify_call -> validation against the graph's enums in code (IntakeRejected, nothing written) -> create incident (call_text and intake_model stored, synthetic) -> caller-reported hazards written as Hazard {reported_by:'caller'} -> effective_requirements -> recommend -> record_decision. Never dispatches. The model's confidence is uncalibrated (0.95 everywhere in the 4A probe) and is neither stored nor shown.
 - MCP (graphdispatch/tools.py + mcp_server.py, SDK package `mcp` 2.3.0): exactly six tools; five are read-only and report_hazard is the only write. There is no dispatch tool, no clear tool and no tool that takes Cypher or free query text. Dispatch stays human-confirmed (CLI/ops).
-- Memory changes decisions: requirements for an incident are the type's REQUIRES plus ADDS_REQUIREMENT from active hazards at the same Address whose incident_type matches (query effective_requirements, one query). Summing rule: sum across base and DISTINCT hazard kinds; repeated hazards of one kind never add up (group by capability and kind, take the max count per kind). Sources list each kind once with all contributing hazard ids. Each CHOSE edge records why the capability was required ('base' or 'hazard:<id>:<kind>'). Unmet capabilities are stored on the Decision (unmet, unmet_reasons); a shortage never crashes a call.
+- Memory changes decisions: requirements for an incident are the type's REQUIRES plus ADDS_REQUIREMENT from active hazards at the same Address whose incident_type matches (query effective_requirements, one query). Summing rule: sum across base and DISTINCT hazard kinds; repeated hazards of one kind never add up (group by capability and kind, take the max count per kind). Sources list each kind once with all contributing hazard ids. Summing rule: sum across base and DISTINCT hazard kinds; repeated hazards of one kind never add up (group by capability and kind, take the max count per kind). Sources list each kind once with all contributing hazard ids. Each CHOSE edge records why the capability was required ('base' or 'hazard:<id>:<kind>'). Unmet capabilities are stored on the Decision (unmet, unmet_reasons); a shortage never crashes a call.
 - Hazard kinds are a closed vocabulary (HazardKind from seed/hazard_rules.csv); add_hazard refuses unknown kinds and lists the allowed ones.
 - Trauma levels come from the CA EMSA Designated Trauma Centers list (updated 2025-08-25) and are stored as OFFERS {level}; they are displayed, never used to choose a hospital.
 - Runtime labels are Incident, Decision, Caller, Address, Hazard. scripts/reset.py is the only reset path: dry run by default, --yes only for sjfd or sjfd_test, deletes runtime labels only and restores seed unit statuses.
@@ -138,6 +138,24 @@ Add under `mcpServers` in `claude_desktop_config.json`; the venv python is launc
 ```
 FalkorDB must be running on localhost:6379. Use GRAPH_NAME sjfd for the real demo graph.
 
+## Web app (Phase 5)
+Run: `python -m uvicorn graphdispatch.api:app --port 8000` (graph from env GRAPH_NAME, default sjfd; FalkorDB on localhost:6379). Open http://localhost:8000/.
+- API (graphdispatch/api.py): GET /api/health (real graph read, 503 if FalkorDB is down), GET /api/meta, POST /api/call (the only LLM path), POST /api/recommend (graph only), GET /api/decision/{id}, POST /api/dispatch/{decision_id}, POST /api/clear/{incident_id}, GET /api/incidents, POST /api/hazard. Interactive docs at /api/docs.
+- Every decision response carries `routes` ([lon, lat] arrays per leg, from the ROUTE edges) and `queries` (name, real Cypher text, ms, summarized params) for every named query the request ran; db.record_queries() collects them.
+- Cost control for a public URL: /api/call is capped server-side by LLM_DAILY_CAP (env, default 150, counted by UTC date in runs/llm_daily.json) and 6 calls per 10 minutes per client IP (set TRUST_PROXY=1 only behind a proxy you control, to read X-Forwarded-For). Over a cap the API returns 429 and the page switches to Graph only. The graph-only path never calls the LLM. Caller ids are generated server-side.
+- Static page (graphdispatch/static/): index.html, app.js, api.js, map.js, panel.js, style.css as plain ES modules, no build step. MapLibre GL JS 5.24.0 is vendored in static/vendor/ (source recorded in seed/DATA.md). Runtime network: the tile server (tiles.openfreemap.org) and Google Fonts only.
+- Design: NFPA 704 placard colors carry meaning (fire red for units and stations, medical blue for hospitals, hazard yellow for hazard shapes only, never as text). Tokens in style.css: ink #1D2733, muted #5E6B7A, surface #F2F4F6, panel #FFFFFF, fire #C8102E, medical #1F5FBF, hazard #F2C230, line #D5DBE1. Atkinson Hyperlegible Next for UI, Atkinson Hyperlegible Mono only for unit ids, ETAs and Cypher. Sentence case, one 6 px control radius, visible focus, reduced motion respected.
+- The memorable element: every line in the decision panel is a button that opens the Why drawer on the Cypher query that produced it, with its parameters and timings.
+- Graph-only "Garage fire with oxygen" preset records the oxygen hazard first (what the AI path extracts from call 1), then runs structure_fire, then cardiac_arrest. Adding the hazard between the two calls, as first specified, would never change either call because oxygen_storage only adds hazmat to structure_fire.
+- Screenshots and the console/network check: `python phase5/screenshots.py` with the server running on GRAPH_NAME=sjfd_test (needs `pip install playwright pillow` and `playwright install chromium`); outputs in phase5/screens/.
+
+## Phase 5 pitfalls
+- Author CSS `display` overrides the `hidden` attribute; keep `[hidden] { display: none !important; }`.
+- MapLibre writes an inline `transform` on marker elements, so style marker shapes with pseudo-elements, not transform on the marker. Plain `div` markers need `display: block` after `all: unset`.
+- A hazard at the incident's own coordinates hides under the incident pin; hazard markers are offset 20 px.
+- Palette-compressing screenshots with median cut turns small saturated shapes (the yellow diamond) tan; use FASTOCTREE.
+- uvicorn runs sync endpoints in a thread pool; db.record_queries() uses a ContextVar so recordings do not mix between requests.
+
 ## QUERIES
 Every named query in graphdispatch/queries.cypher (kept in sync by tests/test_docs.py):
 - `idx_intersection`: Index Intersection.osm_id.
@@ -178,7 +196,7 @@ Every named query in graphdispatch/queries.cypher (kept in sync by tests/test_do
 - `incident_info`: Incident status, type and address.
 - `recall_incidents`: Earlier incidents at the same address since a cutoff time.
 - `recall_hazards`: Hazards at the incident's address that are valid at the given time, with the kind's crew note.
-- `add_hazard`: Create a hazard of a known kind at an address (address created with label only if missing).
+- `add_hazard`: Create a hazard of a known kind at an address (address created with label, and position when given).
 - `hazard_reported_in`: Link a hazard to the incident it was reported in.
 - `decision_create`: Create a decision node for an incident, with unmet capabilities and their reasons.
 - `decision_considered`: Record candidate units considered, with capability, ETA and rank.
@@ -210,6 +228,10 @@ Every named query in graphdispatch/queries.cypher (kept in sync by tests/test_do
 - `address_incidents`: Incidents at an address (by normalized address_id) created since a cutoff time.
 - `open_incidents`: Incidents that are open or dispatched, with their address.
 - `unit_status_detail`: Every unit with type, status and station.
+- `health_ping`: Health check: count intersections (a real graph read).
+- `meta_stations`: Stations with the position of the intersection they snap to.
+- `meta_hospitals`: Hospitals with snapped position, offered capabilities and designation levels.
+- `active_hazards_map`: Active hazards with the address position and crew note (for map markers).
 
 ## Anti-features
 - Voice input

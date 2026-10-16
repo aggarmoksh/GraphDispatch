@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GraphDispatch</title>
+  <meta name="description" content="Dispatch decision support walked through a FalkorDB graph of San Jose roads, stations and hospitals. Synthetic data.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700&amp;family=Atkinson+Hyperlegible+Mono:wght@400;600&amp;display=swap">
+  <link rel="stylesheet" href="/vendor/maplibre-gl.css">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <a class="skip" href="#panel">Skip to the decision panel</a>
+
+  <header class="bar">
+    <h1>GraphDispatch</h1>
+    <p>Every recommendation is a walk through a FalkorDB graph of San Jose roads, stations and hospitals.</p>
+    <span id="graph-badge" class="mono badge" hidden></span>
+  </header>
+
+  <main class="layout">
+    <aside class="side" aria-label="Call and decision">
+      <section class="callbox" aria-labelledby="call-h">
+        <h2 id="call-h">Take a call</h2>
+        <div class="presets" role="group" aria-label="Presets">
+          <button type="button" class="preset" data-preset="stroke">Stroke, west side</button>
+          <button type="button" class="preset" data-preset="burn">Burn, east side</button>
+          <button type="button" class="preset" data-preset="oxygen">Garage fire with oxygen, then a collapse next door</button>
+        </div>
+        <p id="loc" class="loc">Pick a preset or click the map to place a caller.</p>
+        <label class="switch"><input type="checkbox" id="graph-only"> Graph only (no AI call)</label>
+        <div id="ai-fields" class="field">
+          <label for="text">What the caller says</label>
+          <textarea id="text" rows="3" maxlength="500" placeholder="Describe the emergency in the caller's words"></textarea>
+        </div>
+        <div id="graph-fields" class="field" hidden>
+          <label for="itype">Incident type</label>
+          <select id="itype"></select>
+          <label for="addr">Address (optional)</label>
+          <input id="addr" type="text" maxlength="200" placeholder="200 Demo St" autocomplete="off">
+        </div>
+        <button type="button" id="take" class="primary">Take call</button>
+        <p id="status" class="status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section id="panel" class="panel" aria-labelledby="dec-h" tabindex="-1">
+        <h2 id="dec-h">Decision</h2>
+        <div id="history" class="history" hidden></div>
+        <div id="decision"><p class="empty">Pick a preset or click the map to place a caller.</p></div>
+      </section>
+    </aside>
+
+    <div class="mapwrap">
+      <div id="map" aria-label="Map of downtown San Jose with stations, hospitals, incident and routes"></div>
+      <ul class="legend" aria-label="Map key">
+        <li><span class="key st"></span>Fire station</li>
+        <li><span class="key hosp">H</span>Hospital</li>
+        <li><span class="key haz"></span>Hazard</li>
+        <li><span class="key line fire"></span>Unit route</li>
+        <li><span class="key line med"></span>Hospital route</li>
+      </ul>
+    </div>
+  </main>
+
+  <section id="why" class="drawer" data-open="false" aria-labelledby="why-h">
+    <div class="drawer-head">
+      <h2 id="why-h">Why</h2>
+      <p id="why-hint">Select any line in the decision panel to see the Cypher query that produced it.</p>
+      <button type="button" id="why-toggle" aria-expanded="false" aria-controls="why-body">Show</button>
+    </div>
+    <div id="why-body" class="drawer-body" hidden></div>
+  </section>
+
+  <footer class="foot">
+    <p>Units, incidents and callers are synthetic. Not a real dispatch system.</p>
+    <p>Map data &copy; OpenStreetMap contributors (ODbL). Map tiles by OpenFreeMap. Maps rendered with MapLibre GL JS.</p>
+  </footer>
+
+  <script src="/vendor/maplibre-gl.js"></script>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

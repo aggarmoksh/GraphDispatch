@@ -1,0 +1,26 @@
+{
+ "stroke_rows": 2,
+ "stroke_destination": "Regional Medical Center of San Jose, ETA 551 s",
+ "why_cypher_has_spp": true,
+ "oxygen_call1_text": "Structure fire at 200 Demo Street\n\nStatus: open. Synthetic incident inc-870f00c1a2.\n\nUnits to send (synthetic)\nUnit\tCovers\tETA\tWhy required\nT1\tladder\t47 s\trequired by incident type\nE8\tfire suppression\t134 s\trequired by incident type\nT8\tfire suppression\t134 s\trequired by incident type\nHM26\thazmat\t429 s\tadded by oxygen_storage\nDestination hospital\nNo hospital is needed for this incident type.\nMemory of this address\nOxygen storage: Home oxygen next door (preset)\nCrew note: Stored oxygen accelerates fire; no open flame\nDispatch these units\nClear incident",
+ "hazard_diamonds": 1,
+ "oxygen_call2_text": "Cardiac arrest at 200 Demo Street\n\nStatus: open. Synthetic incident inc-1fabc7078f.\n\nUnits to send (synthetic)\nUnit\tCovers\tETA\tWhy required\nE8\tals\t134 s\trequired by incident type\nM3\ttransport\t150 s\trequired by incident type\nDestination hospital\nO'Connor Hospital, ETA 352 s\nRule: fastest hospital offering emergency: O'Connor Hospital (352 s)\nMemory of this address\nOxygen storage: Home oxygen next door (preset)\nCrew note: Stored oxygen accelerates fire; no open flame\nEarlier incident here: structure fire (inc-870f00c1a2)\nDispatch these units\nClear incident",
+ "desktop_scroll_w": [
+  1440,
+  1440
+ ],
+ "mobile_scroll_w": [
+  390,
+  390
+ ],
+ "console_errors": [],
+ "page_errors": [],
+ "request_hosts": [
+  "fonts.googleapis.com",
+  "fonts.gstatic.com",
+  "localhost",
+  "tiles.openfreemap.org"
+ ],
+ "unexpected_hosts": [],
+ "failed_requests": []
+}

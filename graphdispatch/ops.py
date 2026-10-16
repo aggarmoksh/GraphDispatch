@@ -88,7 +88,8 @@ def format_group(g):
     return f"{head}: " + "; ".join(n for n in g["notes"] if n)
 
 
-def add_hazard(address_label, kind, note, valid_from, valid_to, incident_id=None, now=None, reported_by=None):
+def add_hazard(address_label, kind, note, valid_from, valid_to, incident_id=None, now=None, reported_by=None,
+               lat=None, lon=None):
     now = int(time.time()) if now is None else int(now)
     allowed = [r[0] for r in db.read("hazard_kinds")]
     if kind not in allowed:
@@ -96,7 +97,8 @@ def add_hazard(address_label, kind, note, valid_from, valid_to, incident_id=None
     hazard_id = _new_id("haz")
     db.write("add_hazard", {"address_id": address_id(address_label), "label": address_label, "hazard_id": hazard_id,
                             "kind": kind, "note": note, "valid_from": int(valid_from), "valid_to": int(valid_to), "now": now,
-                            "reported_by": reported_by, "created_ns": time.time_ns()})
+                            "reported_by": reported_by, "created_ns": time.time_ns(),
+                            "lat": None if lat is None else float(lat), "lon": None if lon is None else float(lon)})
     if incident_id:
         db.write("hazard_reported_in", {"hazard_id": hazard_id, "incident_id": incident_id})
     return hazard_id
