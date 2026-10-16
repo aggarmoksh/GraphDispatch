@@ -13,7 +13,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from graphdispatch.recommend import OutOfArea, recommend  # noqa: E402
 
-PROC, SEED, OUT = ROOT / "data/processed", ROOT / "seed", ROOT / "phase1"
+SEED, OUT = ROOT / "seed", ROOT / "phase1"
+SNAP = sorted(SEED.glob("osm_b2_*"))[-1]
 
 SCENARIOS = {
     "S1": ("stroke", 37.3300, -121.9300),
@@ -35,8 +36,8 @@ def hav(lat1, lon1, lat2, lon2):
 
 @pytest.fixture(scope="module")
 def world():
-    nodes = pd.read_csv(PROC / "b2_intersections.csv")
-    roads = pd.read_csv(PROC / "b2_roads.csv", keep_default_na=False)
+    nodes = pd.read_csv(SNAP / "b2_intersections.csv")
+    roads = pd.read_csv(SNAP / "b2_roads.csv", keep_default_na=False)
     G = nx.DiGraph()
     for r in roads.itertuples():
         G.add_edge(r.src, r.dst, w=r.travel_s)
@@ -49,12 +50,11 @@ def world():
 
     stations = pd.read_csv(SEED / "stations.csv", comment="#")
     units = pd.read_csv(SEED / "units.csv", comment="#")
-    types = pd.read_csv(SEED / "incident_types.csv", comment="#").fillna("")
-    raw = pd.read_csv(PROC / "hospitals_raw.csv").set_index("osm_id")
-    hosp = pd.read_csv(SEED / "hospitals.csv", comment="#", dtype={"osm_id": int})
+    types = pd.read_csv(SEED / "incident_types.csv", comment="#", dtype=str).fillna("")
+    hosp = pd.read_csv(SEED / "hospitals.csv", comment="#", dtype={"osm_id": int}).set_index("osm_id", drop=False)
     return dict(G=G, snap=snap, units=units.set_index("unit_id"), types=types.set_index("name"),
                 st_node={int(r.station_id): snap(r.lat, r.lon)[0] for r in stations.itertuples()},
-                hosp={int(r.osm_id): (snap(raw.loc[r.osm_id, "lat"], raw.loc[r.osm_id, "lon"])[0], set(r.capabilities.split(";")))
+                hosp={int(r.osm_id): (snap(r.lat, r.lon)[0], set(r.capabilities.split(";")))
                       for r in hosp.itertuples()})
 
 

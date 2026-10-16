@@ -1,4 +1,10 @@
-"""Download the B2 drive network, keep the largest strongly connected component, export CSVs."""
+"""Download the B2 drive network, keep the largest strongly connected component, export CSVs.
+
+Writes scratch CSVs to data/processed/. Only with --refresh does it also write a NEW dated snapshot
+folder seed/osm_b2_<date>/ (never overwrites an existing one).
+"""
+import sys
+from datetime import date
 from pathlib import Path
 import osmnx as ox
 import pandas as pd
@@ -32,3 +38,12 @@ e = e.sort_values("travel_s").drop_duplicates(["src", "dst"], keep="first")
 e.to_csv(PROC / "b2_roads.csv", index=False)
 print(f"before SCC: nodes={n0} edges={e0}; after SCC: nodes={n1} edges={e1}; "
       f"csv edges after parallel dedupe={len(e)} (dropped {m0 - len(e)})")
+
+if "--refresh" in sys.argv:
+    snap = ROOT / "seed" / f"osm_b2_{date.today().isoformat()}"
+    if snap.exists():
+        sys.exit(f"{snap} already exists; refusing to overwrite")
+    snap.mkdir(parents=True)
+    pd.read_csv(PROC / "b2_intersections.csv").to_csv(snap / "b2_intersections.csv", index=False)
+    e.to_csv(snap / "b2_roads.csv", index=False)
+    print("wrote", snap)

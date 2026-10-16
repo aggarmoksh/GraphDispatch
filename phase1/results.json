@@ -18,7 +18,7 @@
    "nearest": "O'Connor Hospital",
    "differs": true,
    "skipped": "O'Connor Hospital is nearest (49 s) but lacks stroke_thrombectomy",
-   "total_ms": 42.4
+   "total_ms": 28.7
   },
   "S2": {
    "type": "burn",
@@ -38,7 +38,7 @@
    "nearest": "Regional Medical Center of San Jose",
    "differs": true,
    "skipped": "Regional Medical Center of San Jose is nearest (84 s) but lacks burn",
-   "total_ms": 30.8
+   "total_ms": 28.6
   },
   "S3": {
    "type": "cardiac_arrest",
@@ -58,7 +58,7 @@
    "nearest": "O'Connor Hospital",
    "differs": false,
    "skipped": null,
-   "total_ms": 28.8
+   "total_ms": 29.7
   },
   "S4": {
    "type": "structure_fire",
@@ -83,7 +83,7 @@
    "nearest": null,
    "differs": null,
    "skipped": null,
-   "total_ms": 18.3
+   "total_ms": 21.7
   },
   "S5": {
    "type": "pediatric_trauma",
@@ -103,7 +103,7 @@
    "nearest": "Regional Medical Center of San Jose",
    "differs": true,
    "skipped": "Regional Medical Center of San Jose is nearest (508 s) but lacks pediatric_trauma",
-   "total_ms": 21.4
+   "total_ms": 26.5
   },
   "S6": {
    "type": "hazmat_spill",
@@ -123,10 +123,10 @@
    "nearest": null,
    "differs": null,
    "skipped": null,
-   "total_ms": 14.9
+   "total_ms": 22.4
   }
  },
- "p50_ms": 18.25269999972079,
- "p95_ms": 22.282199999608565,
+ "p50_ms": 27.764250000473112,
+ "p95_ms": 41.81590000007418,
  "n": 30
 }
